@@ -56,7 +56,6 @@ public final class Client {
 
         try {
             builder.setData(ByteString.copyFrom(s, "UTF-8"));
-//        builder.setData(ByteString.copyFrom(byte[]));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -67,31 +66,35 @@ public final class Client {
     }
 
 	private void go() {
-//		metadataStub.ping(Empty.newBuilder().build());
-//        logger.info("Successfully pinged the Metadata server");
+		metadataStub.ping(Empty.newBuilder().build());
+        logger.info("Successfully pinged the Metadata server");
         
-        blockStub.ping(Empty.newBuilder().build());
-        logger.info("Successfully pinged the Blockstore server");
-        
-        // TODO: Implement your client here
-        Block b1 = stringToBlock("block_01");
-        Block b2 = stringToBlock("block_02");
-
-        ensure(blockStub.hasBlock(b1).getAnswer() == false);
-        ensure(blockStub.hasBlock(b2).getAnswer() == false);
-
-        blockStub.storeBlock(b1);
-        ensure(blockStub.hasBlock(b1).getAnswer() == true);
-
-        blockStub.storeBlock(b2);
-        ensure(blockStub.hasBlock(b2).getAnswer() == true);
-
-        Block b1prime = blockStub.getBlock(b1);
-        ensure(b1prime.getHash().equals(b1.getHash()));
-        ensure(b1prime.getData().equals(b1.getData()));
-
-        logger.info("We passed all the tests... yay!");
+//        blockStub.ping(Empty.newBuilder().build());
+//        logger.info("Successfully pinged the Blockstore server");
+//
+//        // TODO: Implement your client here
+//        Block b1 = stringToBlock("block_01");
+//        Block b2 = stringToBlock("block_02");
+//
+//        ensure(blockStub.hasBlock(b1).getAnswer() == false);
+//        ensure(blockStub.hasBlock(b2).getAnswer() == false);
+//
+//        blockStub.storeBlock(b1);
+//        ensure(blockStub.hasBlock(b1).getAnswer() == true);
+//
+//        blockStub.storeBlock(b2);
+//        ensure(blockStub.hasBlock(b2).getAnswer() == true);
+//
+//        Block b1prime = blockStub.getBlock(b1);
+//        ensure(b1prime.getHash().equals(b1.getHash()));
+//        ensure(b1prime.getData().equals(b1.getData()));
+//
+//        logger.info("We passed all the tests... yay!");
 	}
+
+	private void upload() {
+
+    }
 
 	/*
 	 * TODO: Add command line handling here
@@ -101,7 +104,14 @@ public final class Client {
                 .description("Client for SurfStore");
         parser.addArgument("config_file").type(String.class)
                 .help("Path to configuration file");
-        
+        // NEW
+//        parser.addArgument("operation").type(String.class)
+//                .help("Operation to perform");
+//        parser.addArgument("filename1").type(String.class)
+//                .help("file1");
+//        parser.addArgument("filename2").type(String.class)
+//                .help("file2");
+
         Namespace res = null;
         try {
             res = parser.parseArgs(args);

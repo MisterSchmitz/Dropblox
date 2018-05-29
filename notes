@@ -1,0 +1,11 @@
+Upload a file
+
+Client.java
+- read new arguments from command line (operation 'upload', filename)
+- send upload message to server
+- handle response back from server
+
+MetadataStore.java
+- handle upload message from client
+- modifyFile
+- send response back to client
