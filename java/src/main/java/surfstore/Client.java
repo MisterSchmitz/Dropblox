@@ -2,6 +2,7 @@ package surfstore;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -16,6 +17,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.Block.Builder;
+import surfstore.SurfStoreBasic.FileInfo;
 
 public final class Client {
     private static final Logger logger = Logger.getLogger(Client.class.getName());
@@ -65,14 +67,19 @@ public final class Client {
         return builder.build(); // turns the Builder into a Block
     }
 
-	private void go() {
+	private void go(String operation, String filename, String pathToStore) {
 		metadataStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Metadata server");
         
-//        blockStub.ping(Empty.newBuilder().build());
-//        logger.info("Successfully pinged the Blockstore server");
+        blockStub.ping(Empty.newBuilder().build());
+        logger.info("Successfully pinged the Blockstore server");
 //
 //        // TODO: Implement your client here
+
+        if(operation.equals("upload")) {
+            upload(filename);
+        }
+
 //        Block b1 = stringToBlock("block_01");
 //        Block b2 = stringToBlock("block_02");
 //
@@ -92,7 +99,33 @@ public final class Client {
 //        logger.info("We passed all the tests... yay!");
 	}
 
-	private void upload() {
+	/*
+     * Reads the local file, creates a set of hashed blocks and uploads them onto the MetadataStore
+     * (and potentially the BlockStore if they were not already present there).
+	 */
+	private void upload(String filename) {
+        System.out.println("Uploading file " + filename);
+
+        // Read the local file
+        File fileToUpload = new File(filename);
+        String fileContents;
+        try {
+            fileContents = new String(Files.readAllBytes(fileToUpload.toPath()), "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        System.out.println("Read local file.");
+        System.out.println(fileContents);
+
+        // Create a set of hashed blocks
+        String fileContentsHash = HashUtils.sha256(fileContents);
+        System.out.println("Hashed local file.");
+        System.out.println(fileContentsHash);
+
+        // Upload to Metadatastore
+        FileInfo request = FileInfo.newBuilder().setFilename(filename).build();
+        metadataStub.readFile(request);
 
     }
 
@@ -105,6 +138,12 @@ public final class Client {
         parser.addArgument("config_file").type(String.class)
                 .help("Path to configuration file");
         // NEW
+        parser.addArgument("operation").type(String.class)
+                .help("Type of operation to perform");
+        parser.addArgument("filename").type(String.class)
+                .help("File name on which to operate");
+        parser.addArgument("path_to_store").type(String.class).nargs("?").setDefault("")
+                .help("Optional path to store downloads");
 //        parser.addArgument("operation").type(String.class)
 //                .help("Operation to perform");
 //        parser.addArgument("filename1").type(String.class)
@@ -133,7 +172,11 @@ public final class Client {
         Client client = new Client(config);
         
         try {
-        	client.go();
+        	client.go(
+        	        c_args.getString("operation"),
+                    c_args.getString("filename"),
+                    c_args.getString("path_to_store")
+            );
         } finally {
             client.shutdown();
         }

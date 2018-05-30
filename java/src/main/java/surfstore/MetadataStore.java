@@ -14,6 +14,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Empty;
+import surfstore.SurfStoreBasic.FileInfo;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
@@ -100,25 +101,27 @@ public final class MetadataStore {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
+        
+        /**
+         * <pre>
+         * Read the requested file.
+         * The client only needs to supply the "filename" argument of FileInfo.
+         * The server only needs to fill the "version" and "blocklist" fields.
+         * If the file does not exist, "version" should be set to 0.
+         *
+         * This command should return an error if it is called on a server
+         * that is not the leader
+         * </pre>
+         */
+        @Override
+        public void readFile(FileInfo request, StreamObserver<FileInfo> responseObserver) {
+            logger.info("Reading file" + request.getFilename());
 
-        // TODO: Implement the other RPCs!
-//        /**
-//         * <pre>
-//         * Read the requested file.
-//         * The client only needs to supply the "filename" argument of FileInfo.
-//         * The server only needs to fill the "version" and "blocklist" fields.
-//         * If the file does not exist, "version" should be set to 0.
-//         *
-//         * This command should return an error if it is called on a server
-//         * that is not the leader
-//         * </pre>
-//         */
-//        @Override
-//        public void readFile(surfstore.SurfStoreBasic.FileInfo request,
-//                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
-//            logger.info("Reading file");
-//        }
-//
+            FileInfo response = FileInfo.newBuilder().build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
         /**
          * <pre>
          * Write a file.
