@@ -2,6 +2,8 @@ package surfstore;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
@@ -101,7 +103,7 @@ public final class MetadataStore {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
-        
+
         /**
          * <pre>
          * Read the requested file.
@@ -117,7 +119,31 @@ public final class MetadataStore {
         public void readFile(FileInfo request, StreamObserver<FileInfo> responseObserver) {
             logger.info("Reading file" + request.getFilename());
 
-            FileInfo response = FileInfo.newBuilder().build();
+            FileInfo.Builder responseBuilder = FileInfo.newBuilder();
+
+            // Filename
+            String filename = request.getFilename();
+            responseBuilder.setFilename(filename);
+
+            // Version
+            int v;
+            if (!version.containsKey(filename)) {
+                v = 0;
+            } else {
+                v = version.get(filename);
+            }
+            responseBuilder.setVersion(v);
+
+            // Blocklist
+            int idx = 0;
+            if (hashlist.containsKey(filename)) {
+                for (String item : hashlist.get(filename)) {
+                    responseBuilder.setBlocklist(idx, item);
+                    idx += 1;
+                }
+            }
+
+            FileInfo response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
@@ -213,19 +239,21 @@ public final class MetadataStore {
 //            asyncUnimplementedUnaryCall(METHOD_IS_CRASHED, responseObserver);
 //        }
 //
-//        /**
-//         * <pre>
-//         * Returns the current committed version of the requested file
-//         * The argument's FileInfo only has the "filename" field defined
-//         * The FileInfo returns the filename and version fields only
-//         * This should return a result even if the follower is in a
-//         *   crashed state
-//         * </pre>
-//         */
-//        @Override
-//        public void getVersion(surfstore.SurfStoreBasic.FileInfo request,
-//                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
+        /**
+         * <pre>
+         * Returns the current committed version of the requested file
+         * The argument's FileInfo only has the "filename" field defined
+         * The FileInfo returns the filename and version fields only
+         * This should return a result even if the follower is in a
+         *   crashed state
+         * </pre>
+         */
+        @Override
+        public void getVersion(FileInfo request, StreamObserver<FileInfo> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_GET_VERSION, responseObserver);
-//        }
+        }
+
+        private Map<String, Integer> version = new HashMap<String, Integer>();
+        private Map<String, String[]> hashlist = new HashMap<String, String[]>();
     }
 }

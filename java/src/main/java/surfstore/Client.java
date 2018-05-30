@@ -71,8 +71,8 @@ public final class Client {
 		metadataStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Metadata server");
         
-        blockStub.ping(Empty.newBuilder().build());
-        logger.info("Successfully pinged the Blockstore server");
+//        blockStub.ping(Empty.newBuilder().build());
+//        logger.info("Successfully pinged the Blockstore server");
 //
 //        // TODO: Implement your client here
 
@@ -116,17 +116,18 @@ public final class Client {
             throw new RuntimeException(e);
         }
         System.out.println("Read local file.");
-        System.out.println(fileContents);
+//        System.out.println(fileContents);
 
         // Create a set of hashed blocks
-        String fileContentsHash = HashUtils.sha256(fileContents);
-        System.out.println("Hashed local file.");
-        System.out.println(fileContentsHash);
+//        String fileContentsHash = HashUtils.sha256(fileContents);
+//        System.out.println("Hashed local file.");
+//        System.out.println(fileContentsHash);
 
         // Upload to Metadatastore
         FileInfo request = FileInfo.newBuilder().setFilename(filename).build();
-        metadataStub.readFile(request);
-
+        FileInfo response = metadataStub.readFile(request);
+        System.out.println("version: "+ response.getVersion());
+        System.out.println("hashlist: "+ response.getBlocklistCount());
     }
 
 	/*
