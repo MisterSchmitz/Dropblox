@@ -17,6 +17,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.FileInfo;
+import surfstore.SurfStoreBasic.WriteResult;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
@@ -166,14 +167,24 @@ public final class MetadataStore {
          * that is not the leader
          * </pre>
          */
-//        @Override
-//        public void modifyFile(surfstore.SurfStoreBasic.FileInfo request,
-//                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-//            String filename = request.getFilename();
-//            int version = request.getVersion();
-//            ProtocolStringList blockList = request.getBlocklistList(); // TODO: See what type this is and what we need
-//            logger.info("Writing file: " + filename + "Version: " + version);
-//        }
+        @Override
+        public void modifyFile(FileInfo request, StreamObserver<WriteResult> responseObserver) {
+            String filename = request.getFilename();
+            int version = request.getVersion();
+            ProtocolStringList blockList = request.getBlocklistList(); // TODO: See what type this is and what we need
+            logger.info("Writing file: " + filename + "Version: " + version);
+
+            WriteResult.Builder responseBuilder = WriteResult.newBuilder();
+
+            // TODO: Implement these
+            responseBuilder.setCurrentVersion(0);
+            responseBuilder.setResultValue(0);
+//            responseBuilder.setMissingBlocks();
+
+            WriteResult response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
 //
 //        /**
 //         * <pre>

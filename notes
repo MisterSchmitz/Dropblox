@@ -1,12 +1,5 @@
 NEXT STEPS:
-
-Call Metadatastore Readfile(f)
-
-Create a set of hashed blocks...
-Read bytes from file into 4KB chunks, with last chunk at least 1KB.
-Convert bytes into hashes
-Send hashes along to Metadata store?
-
+Metadatastore - Line 179: Implement modifyFile response.
 
 HIGH-LEVEL NEXT STEP(s):
 Upload a file to metadatastore
@@ -14,7 +7,7 @@ Upload a file to metadatastore
 
 Upload a file
 * DONE Reads the local file
-* WIP (Currently one hash block) creates a set of hashed blocks
+* DONE (Currently one hash block) creates a set of hashed blocks
 * uploads them onto the MetadataStore 
 * uploads them onto the BlockStore (if they were not already present there).
 * When a client wants to create a new file, it first contacts the MetadataStore leader to see if the file already exists (or existed in the past, and has since been deleted).
