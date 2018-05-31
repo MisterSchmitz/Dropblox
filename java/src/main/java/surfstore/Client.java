@@ -194,8 +194,10 @@ public final class Client {
 
             WriteResult.Result modifyResult = modifyResponse.getResult();
             int currentVersion = modifyResponse.getCurrentVersion();
+            int missingBlockCount = modifyResponse.getMissingBlocksCount();
             System.out.println("modifyResult: "+modifyResult.getValueDescriptor());
             System.out.println("currentVersion: "+currentVersion);
+            System.out.println("missingBlockCount: "+missingBlockCount);
         }
     }
 

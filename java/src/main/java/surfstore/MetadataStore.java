@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.ProtocolStringList;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -15,8 +18,10 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.FileInfo;
+import surfstore.SurfStoreBasic.SimpleAnswer;
 import surfstore.SurfStoreBasic.WriteResult;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
@@ -26,9 +31,15 @@ public final class MetadataStore {
 
     protected Server server;
 	protected ConfigReader config;
+    private final ManagedChannel blockChannel;
+    private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
     public MetadataStore(ConfigReader config) {
     	this.config = config;
+        this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
+                .usePlaintext(true).build();
+        this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
 	}
 
 	private void start(int port, int numThreads) throws IOException {
@@ -92,12 +103,18 @@ public final class MetadataStore {
             throw new RuntimeException(String.format("metadata%d not in config file", c_args.getInt("number")));
         }
 
+        final ManagedChannel blockChannel;
+        final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
+        blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
+                .usePlaintext(true).build();
+        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
         final MetadataStore server = new MetadataStore(config);
         server.start(config.getMetadataPort(c_args.getInt("number")), c_args.getInt("threads"));
         server.blockUntilShutdown();
     }
 
-    static class MetadataStoreImpl extends MetadataStoreGrpc.MetadataStoreImplBase {
+    class MetadataStoreImpl extends MetadataStoreGrpc.MetadataStoreImplBase {
         @Override
         public void ping(Empty req, final StreamObserver<Empty> responseObserver) {
             Empty response = Empty.newBuilder().build();
@@ -176,10 +193,20 @@ public final class MetadataStore {
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
 
-            // TODO: Implement these
-            responseBuilder.setCurrentVersion(0);
+            responseBuilder.setCurrentVersion(0); // TODO: Get actual version
             responseBuilder.setResultValue(0);
-//            responseBuilder.setMissingBlocks();
+
+            // Get missing blocks
+            for (String hash : blockList) {
+                Block.Builder builder = Block.newBuilder();
+                builder.setHash(hash);
+                SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
+                if (!blockExists.getAnswer())
+                    responseBuilder.addMissingBlocks(hash);
+            }
+            if (responseBuilder.getMissingBlocksCount() != 0) {
+                responseBuilder.setResultValue(2);
+            }
 
             WriteResult response = responseBuilder.build();
             responseObserver.onNext(response);
