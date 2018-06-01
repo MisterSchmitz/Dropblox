@@ -187,41 +187,45 @@ public final class Client {
         WriteResult modifyResponse;
 
         modifyReqBuilder.setFilename(filename);
-        modifyReqBuilder.setVersion(fileVersion + 1);
+        modifyReqBuilder.setVersion(fileVersion+1);
         modifyReqBuilder.addAllBlocklist(hashList);
         modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
         WriteResult.Result modifyResult = modifyResponse.getResult();
 
         // Do until receive OK response from MetadataStore
         while (modifyResult.getNumber() != 0) {
+            // TODO: BUG: Version is incorrectly updating even if file doesn't change
+
             int currentVersion = modifyResponse.getCurrentVersion();
             ProtocolStringList missingBlocks = modifyResponse.getMissingBlocksList();
             int missingBlockCount = modifyResponse.getMissingBlocksCount();
 
             // TODO: If version number is too old, update version and try again
             if (modifyResult.getNumber() == 1)  // OLD_VERSION
-                fileVersion = currentVersion+1;
+                modifyReqBuilder.setVersion(currentVersion+1);
 
             if (modifyResult.getNumber() == 2)  // MISSING_BLOCKS
             {
                 // Upload the missing Blocks to BlockStore
+                System.out.println("Uploading missing blocks...");
                 // TODO: Somehow make this atomic across clients
                 for (Block block : blockList) {
-                    if (missingBlocks.contains(block)) {
+                    if (missingBlocks.contains(block.getHash())) {
                         Block.Builder storeBlockReqBuilder = Block.newBuilder();
                         storeBlockReqBuilder.setHash(block.getHash());
                         storeBlockReqBuilder.setData(block.getData());
                         blockStub.storeBlock(storeBlockReqBuilder.build());
                     }
                 }
+                modifyReqBuilder.setVersion(currentVersion+1);
             }
 
-            if (modifyResult.getNumber() == 3)  // TODO: NOT_LEADER - WHAT HAPPENS?
+            if (modifyResult.getNumber() == 3)  // NOT_LEADER TODO: WHAT HAPPENS?
                 break;
 
             // Send new modify request
             modifyReqBuilder.setFilename(filename);
-            modifyReqBuilder.setVersion(fileVersion);
+
             modifyReqBuilder.addAllBlocklist(hashList);
             modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
             modifyResult = modifyResponse.getResult();

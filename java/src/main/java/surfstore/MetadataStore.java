@@ -205,7 +205,7 @@ public final class MetadataStore {
                     responseBuilder.addMissingBlocks(hash);
             }
             if (responseBuilder.getMissingBlocksCount() != 0) {
-                responseBuilder.setResultValue(2);
+                responseBuilder.setResultValue(2); // MISSING_BLOCKS
             } else {
                 // TODO: If version is exactly one more than current version, update hashlist
                 this.hashlist.put(filename, blockList);
