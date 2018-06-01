@@ -153,12 +153,13 @@ public final class MetadataStore {
             responseBuilder.setVersion(v);
 
             // Blocklist
-            int idx = 0;
+//            int idx = 0;
             if (hashlist.containsKey(filename)) {
-                for (String item : hashlist.get(filename)) {
-                    responseBuilder.setBlocklist(idx, item);
-                    idx += 1;
-                }
+                responseBuilder.addAllBlocklist(hashlist.get(filename));
+//                for (String item : hashlist.get(filename)) {
+//                    responseBuilder.setBlocklist(idx, item);
+//                    idx += 1;
+//                }
             }
 
             FileInfo response = responseBuilder.build();
@@ -192,7 +193,6 @@ public final class MetadataStore {
             logger.info("Writing file: " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
-
             responseBuilder.setCurrentVersion(0); // TODO: Get actual version
             responseBuilder.setResultValue(0);
 
@@ -206,6 +206,13 @@ public final class MetadataStore {
             }
             if (responseBuilder.getMissingBlocksCount() != 0) {
                 responseBuilder.setResultValue(2);
+            } else {
+                // TODO: If version is exactly one more than current version, update hashlist
+                this.hashlist.put(filename, blockList);
+            }
+
+            if (responseBuilder.getResultValue() == 0) {
+                this.version.put(filename, version);
             }
 
             WriteResult response = responseBuilder.build();
@@ -292,6 +299,6 @@ public final class MetadataStore {
         }
 
         private Map<String, Integer> version = new HashMap<String, Integer>();
-        private Map<String, String[]> hashlist = new HashMap<String, String[]>();
+        private Map<String, ProtocolStringList> hashlist = new HashMap<String, ProtocolStringList>();
     }
 }

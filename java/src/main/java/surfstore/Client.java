@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 
+import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -18,7 +19,6 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.Block;
-import surfstore.SurfStoreBasic.Block.Builder;
 import surfstore.SurfStoreBasic.FileInfo;
 import surfstore.SurfStoreBasic.WriteResult;
 
@@ -59,7 +59,7 @@ public final class Client {
     }
 
     private static Block stringToBlock(String s) {
-        Builder builder = Block.newBuilder();
+        Block.Builder builder = Block.newBuilder();
 
         try {
             builder.setData(ByteString.copyFrom(s, "UTF-8"));
@@ -73,7 +73,7 @@ public final class Client {
     }
 
     private static Block bytesToBlock(byte[] b) {
-        Builder builder = Block.newBuilder();
+        Block.Builder builder = Block.newBuilder();
 
         try {
             builder.setData(ByteString.copyFrom(b));
@@ -86,10 +86,10 @@ public final class Client {
         return builder.build(); // turns the Builder into a Block
     }
 
-	private void go(String operation, String filename, String pathToStore) {
-		metadataStub.ping(Empty.newBuilder().build());
+    private void go(String operation, String filename, String pathToStore) {
+        metadataStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Metadata server");
-        
+
 //        blockStub.ping(Empty.newBuilder().build());
 //        logger.info("Successfully pinged the Blockstore server");
 //
@@ -116,90 +116,125 @@ public final class Client {
 //        ensure(b1prime.getData().equals(b1.getData()));
 //
 //        logger.info("We passed all the tests... yay!");
-	}
+    }
 
-	/*
+    /*
      * Reads the local file, creates a set of hashed blocks and uploads them onto the MetadataStore
      * (and potentially the BlockStore if they were not already present there).
-	 */
-	private void upload(String filename) {
-        System.out.println("Uploading file " + filename);
+     */
+    private void upload(String filename) {
+        System.err.println("Uploading file " + filename);
 
         // Read the local file
         File fileToUpload = new File(filename);
         byte[] fileContents;
-        String fileContentsString;
         try {
             fileContents = Files.readAllBytes(fileToUpload.toPath());
-            fileContentsString = new String(fileContents, "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        System.out.println("Read local file.");
-//        System.out.println(fileContentsString);
+        System.err.println("Read local file.");
 
         int numBytes = fileContents.length;
-
         int numFullBlocks = numBytes / BLOCKSIZE;
         int numBytesRem = numBytes % BLOCKSIZE;
         int numBlocks = numFullBlocks+1;
 
-        System.out.println("numBlocks " + numFullBlocks);
-        System.out.println("numBytesRem " + numBytesRem);
+        System.err.println("numBlocks " + numFullBlocks);
+        System.err.println("numBytesRem " + numBytesRem);
 
-        // Create a set of hashed blocks
+        // Create a set of Blocks
         Block[] blockList = new Block[numBlocks];
-//        String[] hashList = new String[numBlocks];
         ArrayList<String> hashList = new ArrayList<String>();
+        // First 4KB Blocks
         int i;
         for (i=0; i<numFullBlocks; i++) {
             byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, (i+1)*BLOCKSIZE);
             Block b = bytesToBlock(a);
             blockList[i] = b;
-//            hashList[i] = b.getHash();
             hashList.add(b.getHash());
         }
+        // Last Small Block
         byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
-        Block b = bytesToBlock(a);
-        blockList[i] = b;
-//        hashList[i] = b.getHash();
-        hashList.add(b.getHash());
+        if (a.length > 0) {
+            Block b = bytesToBlock(a);
+            blockList[i] = b;
+            hashList.add(b.getHash());
+        }
 
-        // Read from Metadatastore
+        // Check if file exists in Metadatastore, and get Version
         FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
         FileInfo readResponse = metadataStub.readFile(readRequest);
         int fileVersion = readResponse.getVersion();
-        System.out.println("Version: "+ fileVersion);
-        System.out.println("BlocklistCount: "+ readResponse.getBlocklistCount());
+        System.err.println("Version: "+ fileVersion);
 
-        // Upload to Metadatastore
+        // If file does not exist, upload file to BlockStore
+        if (fileVersion == 0) {
+            System.out.println("File does not exist. Creating...");
+            // Upload all Blocks to BlockStore
+            for (Block block : blockList) {
+                Block.Builder storeBlockReqBuilder = Block.newBuilder();
+                storeBlockReqBuilder.setHash(block.getHash());
+                storeBlockReqBuilder.setData(block.getData());
+                blockStub.storeBlock(storeBlockReqBuilder.build());
+            }
+        }
+
+        // Send upload request to Metadatastore
         FileInfo.Builder modifyReqBuilder = FileInfo.newBuilder();
-        FileInfo modifyRequest;
         WriteResult modifyResponse;
 
-        // If not found, upload file
-        if (fileVersion == 0) {
-            modifyReqBuilder.setFilename(filename);
-            modifyReqBuilder.setVersion(fileVersion + 1);
-//            for (i=0; i<numBlocks; i++) {
-//                modifyReqBuilder.setBlocklist(i, blockList[i].getHash());
-//            }
-//            modifyReqBuilder.addAllBlocklist(hashList);
-            modifyReqBuilder.addAllBlocklist(hashList);
-            modifyRequest = modifyReqBuilder.build();
-            modifyResponse = metadataStub.modifyFile(modifyRequest);
-        // TODO: Else, upload only the changed parts
+        modifyReqBuilder.setFilename(filename);
+        modifyReqBuilder.setVersion(fileVersion + 1);
+        modifyReqBuilder.addAllBlocklist(hashList);
+        modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
+        WriteResult.Result modifyResult = modifyResponse.getResult();
 
-            WriteResult.Result modifyResult = modifyResponse.getResult();
+        // Do until receive OK response from MetadataStore
+        while (modifyResult.getNumber() != 0) {
             int currentVersion = modifyResponse.getCurrentVersion();
+            ProtocolStringList missingBlocks = modifyResponse.getMissingBlocksList();
             int missingBlockCount = modifyResponse.getMissingBlocksCount();
-            System.out.println("modifyResult: "+modifyResult.getValueDescriptor());
-            System.out.println("currentVersion: "+currentVersion);
-            System.out.println("missingBlockCount: "+missingBlockCount);
+
+            // TODO: If version number is too old, update version and try again
+            if (modifyResult.getNumber() == 1)  // OLD_VERSION
+                fileVersion = currentVersion+1;
+
+            if (modifyResult.getNumber() == 2)  // MISSING_BLOCKS
+            {
+                // Upload the missing Blocks to BlockStore
+                // TODO: Somehow make this atomic across clients
+                for (Block block : blockList) {
+                    if (missingBlocks.contains(block)) {
+                        Block.Builder storeBlockReqBuilder = Block.newBuilder();
+                        storeBlockReqBuilder.setHash(block.getHash());
+                        storeBlockReqBuilder.setData(block.getData());
+                        blockStub.storeBlock(storeBlockReqBuilder.build());
+                    }
+                }
+            }
+
+            if (modifyResult.getNumber() == 3)  // TODO: NOT_LEADER - WHAT HAPPENS?
+                break;
+
+            // Send new modify request
+            modifyReqBuilder.setFilename(filename);
+            modifyReqBuilder.setVersion(fileVersion);
+            modifyReqBuilder.addAllBlocklist(hashList);
+            modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
+            modifyResult = modifyResponse.getResult();
+
+            System.out.println("modifyResult: " + modifyResult.getValueDescriptor());
+            System.out.println("currentVersion: " + currentVersion);
+            System.out.println("missingBlockCount: " + missingBlockCount);
+
         }
+
+        System.out.println("Upload Success.");
     }
+
 
     private static Namespace parseArgs(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("Client").build()
@@ -233,10 +268,10 @@ public final class Client {
         ConfigReader config = new ConfigReader(configf);
 
         Client client = new Client(config);
-        
+
         try {
-        	client.go(
-        	        c_args.getString("operation"),
+            client.go(
+                    c_args.getString("operation"),
                     c_args.getString("filename"),
                     c_args.getString("path_to_store")
             );
