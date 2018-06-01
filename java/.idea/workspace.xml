@@ -15,8 +15,8 @@
       <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="181" column="13" lean-forward="true" selection-start-line="181" selection-start-column="13" selection-end-line="181" selection-end-column="13" />
+            <state relative-caret-position="381">
+              <caret line="219" column="60" lean-forward="true" selection-start-line="219" selection-start-column="60" selection-end-line="219" selection-end-column="60" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#5261#5269#0" expanded="true" />
@@ -25,11 +25,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="438">
-              <caret line="214" column="52" lean-forward="true" selection-start-line="214" selection-start-column="52" selection-end-line="214" selection-end-column="52" />
+            <state relative-caret-position="426">
+              <caret line="221" column="60" lean-forward="true" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#1917#2208#0" expanded="true" />
@@ -41,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SurfStoreBasic.proto" pinned="false" current-in-tab="true">
+      <file leaf-file-name="SurfStoreBasic.proto" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="128">
-              <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
+            <state relative-caret-position="-1125">
+              <caret line="15" column="29" lean-forward="true" selection-start-line="15" selection-start-column="29" selection-end-line="15" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -116,7 +116,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-1875" />
+    <option name="x" value="45" />
     <option name="y" value="-4" />
     <option name="width" value="1875" />
     <option name="height" value="1084" />
@@ -397,15 +397,15 @@
       <workItem from="1527544549719" duration="327000" />
       <workItem from="1527544888296" duration="8121000" />
       <workItem from="1527707345092" duration="21515000" />
-      <workItem from="1527848800098" duration="6278000" />
+      <workItem from="1527848800098" duration="7333000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="37483000" />
+    <option name="totallyTimeSpent" value="38538000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1875" y="-4" width="1875" height="1084" extended-state="6" />
+    <frame x="45" y="-4" width="1875" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="7" />
@@ -663,10 +663,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1125">
+          <caret line="15" column="29" lean-forward="true" selection-start-line="15" selection-start-column="29" selection-end-line="15" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="181" column="13" lean-forward="true" selection-start-line="181" selection-start-column="13" selection-end-line="181" selection-end-column="13" />
+        <state relative-caret-position="381">
+          <caret line="219" column="60" lean-forward="true" selection-start-line="219" selection-start-column="60" selection-end-line="219" selection-end-column="60" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#5261#5269#0" expanded="true" />
@@ -676,8 +683,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="438">
-          <caret line="214" column="52" lean-forward="true" selection-start-line="214" selection-start-column="52" selection-end-line="214" selection-end-column="52" />
+        <state relative-caret-position="426">
+          <caret line="221" column="60" lean-forward="true" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#1917#2208#0" expanded="true" />
@@ -685,13 +692,6 @@
             <element signature="e#11641#11658#0" expanded="true" />
             <element signature="e#11839#11867#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="128">
-          <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
         </state>
       </provider>
     </entry>

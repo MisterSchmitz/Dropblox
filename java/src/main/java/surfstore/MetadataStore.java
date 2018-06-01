@@ -145,11 +145,10 @@ public final class MetadataStore {
 
             // Version
             int v;
-            if (!version.containsKey(filename)) {
-                v = 0;
-            } else {
-                v = version.get(filename);
-            }
+            if (!version.containsKey(filename))
+                this.version.put(filename, 0);
+
+            v = version.get(filename);
             responseBuilder.setVersion(v);
 
             // Blocklist
@@ -189,30 +188,42 @@ public final class MetadataStore {
         public void modifyFile(FileInfo request, StreamObserver<WriteResult> responseObserver) {
             String filename = request.getFilename();
             int version = request.getVersion();
-            ProtocolStringList blockList = request.getBlocklistList(); // TODO: See what type this is and what we need
+            ProtocolStringList blockList = request.getBlocklistList();
             logger.info("Writing file: " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
-            responseBuilder.setCurrentVersion(0); // TODO: Get actual version
             responseBuilder.setResultValue(0);
 
-            // Get missing blocks
-            for (String hash : blockList) {
-                Block.Builder builder = Block.newBuilder();
-                builder.setHash(hash);
-                SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
-                if (!blockExists.getAnswer())
-                    responseBuilder.addMissingBlocks(hash);
-            }
-            if (responseBuilder.getMissingBlocksCount() != 0) {
-                responseBuilder.setResultValue(2); // MISSING_BLOCKS
-            } else {
-                // TODO: If version is exactly one more than current version, update hashlist
-                this.hashlist.put(filename, blockList);
+            // TODO: Proper way to handle file not found when uploading?
+            if (!this.version.containsKey(filename)){
+                System.err.println("Could not find file version.");
             }
 
-            if (responseBuilder.getResultValue() == 0) {
-                this.version.put(filename, version);
+            responseBuilder.setCurrentVersion(this.version.get(filename));
+
+            if (version != this.version.get(filename)+1) {
+                responseBuilder.setResultValue(1);
+            } else {
+                // Get missing blocks
+                for (String hash : blockList) {
+                    Block.Builder builder = Block.newBuilder();
+                    builder.setHash(hash);
+                    SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
+                    if (!blockExists.getAnswer())
+                        responseBuilder.addMissingBlocks(hash);
+                }
+                if (responseBuilder.getMissingBlocksCount() != 0) {
+                    responseBuilder.setResultValue(2); // MISSING_BLOCKS
+                } else {
+                    // TODO: If version is exactly one more than current version, update hashlist
+                    this.hashlist.put(filename, blockList);
+                }
+
+                if (responseBuilder.getResultValue() == 0) {
+                    this.version.put(filename, version);
+                    responseBuilder.setCurrentVersion(this.version.get(filename));
+                }
+
             }
 
             WriteResult response = responseBuilder.build();

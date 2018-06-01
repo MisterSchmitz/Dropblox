@@ -1,23 +1,17 @@
 NEXT STEPS:
-Upload only missing blocks.
-Get correct version number.
 
 HIGH-LEVEL NEXT STEP(s):
-Upload a file to metadatastore
-
-
-Upload a file
 DONE Reads the local file
 DONE creates a set of hashed blocks
-* uploads them onto the MetadataStore 
-* uploads them onto the BlockStore (if they were not already present there).
-* When a client wants to create a new file, it first contacts the MetadataStore leader to see if the file already exists (or existed in the past, and has since been deleted).
+DONE uploads them onto the MetadataStore 
+DONE uploads them onto the BlockStore (if they were not already present there).
+DONE When a client wants to create a new file, it first contacts the MetadataStore leader to see if the file already exists (or existed in the past, and has since been deleted).
 DONE If the file already exists, it notes the previous version number, otherwise the file will start with a default version of 0.
 DONE The client then reads its local copy of the file and splits it into blocks, as described above.
 DONE It then computes the hash values of each of the blocks to form a hashlist.
 DONE It then contacts the MetadataStore leader and invokes the ModifyFile() API, passing it the filename, updated version number, and hashlist.
-* ModifyFile should only be applied when the given version number is exactly one higher than the version stored in the metadatastore.
-* The MetadataStore will not create the filename to hashlist mapping if any blocks are not present in the BlockStore. 
+TODO: ModifyFile should only be applied when the given version number is exactly one higher than the version stored in the metadatastore.
+TEST: The MetadataStore will not create the filename to hashlist mapping if any blocks are not present in the BlockStore. 
 
 Clients are also responsible for uploading the blocks of the file to the BlockStore service.
 What if another client tries to download a file using the hashlist given to ModifyFile() by the first client to the MetadataStore before it’s done uploading all of the blocks to the BlockStore? 
