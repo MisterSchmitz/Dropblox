@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -133,16 +135,7 @@ public final class Client {
     private void upload(String filename) {
         System.err.println("Uploading file " + filename);
 
-        // Read the local file
-        File fileToUpload = new File(filename);
-        byte[] fileContents;
-        try {
-            fileContents = Files.readAllBytes(fileToUpload.toPath());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
+        byte[] fileContents = readLocalFile(filename);
         int numBytes = fileContents.length;
         int numFullBlocks = numBytes / BLOCKSIZE;
         int numBytesRem = numBytes % BLOCKSIZE;
@@ -175,7 +168,7 @@ public final class Client {
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
         FileInfo readResponse = metadataStub.readFile(readRequest);
         int fileVersion = readResponse.getVersion();
-        System.err.println("Version: "+ fileVersion);
+//        System.err.println("Server version: "+ fileVersion);
 
         // If file does not exist, upload file to BlockStore
         if (fileVersion == 0) {
@@ -199,8 +192,7 @@ public final class Client {
         modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
         WriteResult.Result modifyResult = modifyResponse.getResult();
 
-        System.out.println("zzzzzzzzzzzzzzz " + modifyResult.getValueDescriptor());
-
+        System.err.println("First upload attempt: "+modifyResult.getValueDescriptor());
         // Do until receive OK response from MetadataStore
         while (modifyResult.getNumber() != 0) {
             System.out.println("Attempting upload again.");
@@ -241,12 +233,25 @@ public final class Client {
             modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
             modifyResult = modifyResponse.getResult();
 
-            System.out.println("modifyResult: " + modifyResult.getValueDescriptor());
-            System.out.println("currentVersion: " + currentVersion);
-            System.out.println("missingBlockCount: " + missingBlockCount);
+//            System.out.println("modifyResult: " + modifyResult.getValueDescriptor());
+//            System.out.println("currentVersion: " + currentVersion);
+//            System.out.println("missingBlockCount: " + missingBlockCount);
         }
 
         System.out.println("Upload Success.");
+    }
+
+    private byte[] readLocalFile(String filename) {
+        // Read the local file
+        File fileToUpload = new File(filename);
+        byte[] fileContents;
+        try {
+            fileContents = Files.readAllBytes(fileToUpload.toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return fileContents;
     }
 
 
@@ -261,14 +266,51 @@ public final class Client {
             return;
         }
 
-        // TODO: pathToStoreDownload is optional?
-        // TODO: Add / at end of pathToStoreDownload if not already there
+        ProtocolStringList blockList = response.getBlocklistList();
 
-        // TODO: Identify missing blocks
+        // TODO: TEST no pathToStoreDownload argument supplied
 
-        // TODO: Only download missing blocks
+        if (pathToStoreDownload != "" && !pathToStoreDownload.endsWith("/")) {
+            pathToStoreDownload = pathToStoreDownload.concat("/");
+        }
 
-        // TODO: Merge all blocks into one coherent file
+        // TODO: BUG - Exception thrown if file not on disk.
+
+        // Read the local file
+        File fileToDownload = new File(pathToStoreDownload+filename);
+        byte[] fileContents;
+        try {
+            fileContents = Files.readAllBytes(fileToDownload.toPath());
+        } catch (Exception e) {
+            fileContents = new byte[0];
+        }
+
+        int numBytes = fileContents.length;
+        int numFullBlocks = numBytes / BLOCKSIZE;
+        int numBlocks = numFullBlocks+1;
+
+        // Create a set of Blocks
+//        Block[] localFileBlockList2 = new Block[numBlocks];
+        ArrayList<Block> localFileBlockList = new ArrayList<Block>();
+        HashMap<String, ByteString> localFileHashMap = new HashMap<String, ByteString>();
+        ArrayList<String> localFileHashList = new ArrayList<String>();
+        // First 4KB Blocks
+        int i;
+        for (i=0; i<numFullBlocks; i++) {
+            byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, (i+1)*BLOCKSIZE);
+            Block b = bytesToBlock(a);
+//            localFileBlockList2[i] = b;
+            localFileHashMap.put(b.getHash(), b.getData());
+            localFileHashList.add(b.getHash());
+        }
+        // Last Small Block
+        byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
+        if (a.length > 0) {
+            Block b = bytesToBlock(a);
+//            localFileBlockList2[i] = b;
+            localFileHashMap.put(b.getHash(), b.getData());
+            localFileHashList.add(b.getHash());
+        }
 
         byte[] allData = new byte[0];
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -279,15 +321,21 @@ public final class Client {
             e.printStackTrace();
         }
 
-        // Download Blocks
-        Block.Builder blockBuilder = Block.newBuilder();
-        ProtocolStringList blockList = response.getBlocklistList();
-        System.out.println(blockList.size());
+        // Get Blocks
+        int downloadedBlockCounter = 0;
         for (String hash : blockList) {
-            System.out.println(hash.toString()); //TODO: Bug, downloads hash twice if make change and upload again
-            blockBuilder.setHash(hash);
-            Block getBlockResponse = blockStub.getBlock(blockBuilder.build());
-            ByteString data = getBlockResponse.getData();
+
+            ByteString data;
+            if (localFileHashList.contains(hash)) {
+                data = localFileHashMap.get(hash);
+            }
+            else {
+                Block.Builder blockBuilder = Block.newBuilder();
+                blockBuilder.setHash(hash);
+                Block getBlockResponse = blockStub.getBlock(blockBuilder.build());
+                data = getBlockResponse.getData();
+                downloadedBlockCounter += 1;
+            }
 //            System.out.println(data.size() + " bytes received.");
 
             try {
@@ -296,15 +344,18 @@ public final class Client {
                 e.printStackTrace();
             }
         }
+        System.out.println("Downloaded " + downloadedBlockCounter + " new blocks.");
 
         // Write to file
-        byte fileContents[] = outputStream.toByteArray();
+        byte outfileContents[] = outputStream.toByteArray();
         try {
-            Files.write(Paths.get(pathToStoreDownload+"/"+filename), fileContents);
+            Files.write(Paths.get(pathToStoreDownload+filename), outfileContents);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+
+        System.out.println(blockList.size() + " blocks written to file.");
     }
 
     // TODO: Implement delete
