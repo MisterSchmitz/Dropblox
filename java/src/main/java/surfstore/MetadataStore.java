@@ -32,20 +32,14 @@ public final class MetadataStore {
 
     protected Server server;
 	protected ConfigReader config;
-    private final ManagedChannel blockChannel;
-    private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
     public MetadataStore(ConfigReader config) {
     	this.config = config;
-        this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
-                .usePlaintext(true).build();
-        this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
-
 	}
 
 	private void start(int port, int numThreads) throws IOException {
         server = ServerBuilder.forPort(port)
-                .addService(new MetadataStoreImpl())
+                .addService(new MetadataStoreImpl(this.config))
                 .executor(Executors.newFixedThreadPool(numThreads))
                 .build()
                 .start();
@@ -104,11 +98,11 @@ public final class MetadataStore {
             throw new RuntimeException(String.format("metadata%d not in config file", c_args.getInt("number")));
         }
 
-        final ManagedChannel blockChannel;
-        final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
-        blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
-                .usePlaintext(true).build();
-        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+//        final ManagedChannel blockChannel;
+//        final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
+//        blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
+//                .usePlaintext(true).build();
+//        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
 
         final MetadataStore server = new MetadataStore(config);
         server.start(config.getMetadataPort(c_args.getInt("number")), c_args.getInt("threads"));
@@ -116,6 +110,19 @@ public final class MetadataStore {
     }
 
     class MetadataStoreImpl extends MetadataStoreGrpc.MetadataStoreImplBase {
+
+        protected ConfigReader config;
+
+        private final ManagedChannel blockChannel;
+        private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
+
+        public MetadataStoreImpl(ConfigReader config) {
+            this.config = config;
+            this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
+                    .usePlaintext(true).build();
+            this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+        }
+
         @Override
         public void ping(Empty req, final StreamObserver<Empty> responseObserver) {
             Empty response = Empty.newBuilder().build();
@@ -193,9 +200,10 @@ public final class MetadataStore {
             responseBuilder.setResultValue(0);
 
             if (!this.version.containsKey(filename)){
-                System.out.println("Not Found");
+                this.version.put(filename, 0);
             }
 
+            // TODO: Come back to this
             responseBuilder.setCurrentVersion(this.version.get(filename));
 
             if (version != this.version.get(filename)+1) {
