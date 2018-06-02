@@ -17,8 +17,8 @@ Clients are also responsible for uploading the blocks of the file to the BlockSt
 What if another client tries to download a file using the hashlist given to ModifyFile() by the first client to the MetadataStore before it’s done uploading all of the blocks to the BlockStore? 
 How can SurfStore guarantee that a client actually did upload the necessary blocks for the file, and didn’t crash along the way?
 * When the client does a ModifyFile() operation, the MetadataStore leader is going to query the BlockStore for each of the hash values in the hashlist, to see which, if any, of the blocks are already in the BlockStore.
-* If any blocks are missing from the BlockStore, the MetadataStore will reply back to the client with a list of missing blocks. 
-* The MetadataStore will not create the filename to hashlist mapping if any blocks are not present in the BlockStore. 
+DONE If any blocks are missing from the BlockStore, the MetadataStore will reply back to the client with a list of missing blocks. 
+
 * Only when all the blocks are in the BlockStore will the MetadataStore signal a success return value to the client’s ModifyFile() operation
 * From then on the new file version is available to any clients that want to download it.
 
@@ -29,3 +29,13 @@ $ client myconfig.txt upload /path/to/file
 Ex:
 $ client /etc/myconfig.txt upload /home/aturing/myfile.txt
 OK
+
+DOWNLOAD
+To download a file, the client invokes the ReadFile() API call on the MetadataStore, passing in the filename.
+The MetadataStore simply returns the version and hashlist to the client.
+The client then downloads the blocks from the BlockStore to form the complete file. 
+
+https://cseweb.ucsd.edu/~gmporter/classes/sp18/cse291/post/project2/downloadExample.png
+
+AmOCmYm2/ZVPcrqvL8ZLwuLwHWktTecphuqAj26ZgT8=
+

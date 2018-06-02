@@ -152,13 +152,8 @@ public final class MetadataStore {
             responseBuilder.setVersion(v);
 
             // Blocklist
-//            int idx = 0;
             if (hashlist.containsKey(filename)) {
                 responseBuilder.addAllBlocklist(hashlist.get(filename));
-//                for (String item : hashlist.get(filename)) {
-//                    responseBuilder.setBlocklist(idx, item);
-//                    idx += 1;
-//                }
             }
 
             FileInfo response = responseBuilder.build();
@@ -189,6 +184,7 @@ public final class MetadataStore {
             String filename = request.getFilename();
             int version = request.getVersion();
             ProtocolStringList blockList = request.getBlocklistList();
+            System.out.println(blockList.size());
             logger.info("Writing file: " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
@@ -202,8 +198,9 @@ public final class MetadataStore {
             responseBuilder.setCurrentVersion(this.version.get(filename));
 
             if (version != this.version.get(filename)+1) {
-                responseBuilder.setResultValue(1);
-            } else {
+                responseBuilder.setResultValue(1); // OLD_VERSION
+            }
+            else {
                 // Get missing blocks
                 for (String hash : blockList) {
                     Block.Builder builder = Block.newBuilder();
@@ -212,18 +209,18 @@ public final class MetadataStore {
                     if (!blockExists.getAnswer())
                         responseBuilder.addMissingBlocks(hash);
                 }
-                if (responseBuilder.getMissingBlocksCount() != 0) {
+                if (responseBuilder.getMissingBlocksCount() > 0) {
                     responseBuilder.setResultValue(2); // MISSING_BLOCKS
-                } else {
-                    // TODO: If version is exactly one more than current version, update hashlist
+                }
+                else {
+                    // TODO TEST: If version is exactly one more than current version, update hashlist
                     this.hashlist.put(filename, blockList);
+                    this.version.put(filename, version);
                 }
 
                 if (responseBuilder.getResultValue() == 0) {
-                    this.version.put(filename, version);
                     responseBuilder.setCurrentVersion(this.version.get(filename));
                 }
-
             }
 
             WriteResult response = responseBuilder.build();

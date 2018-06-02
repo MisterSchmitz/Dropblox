@@ -142,7 +142,6 @@ public final class Client {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        System.err.println("Read local file.");
 
         int numBytes = fileContents.length;
         int numFullBlocks = numBytes / BLOCKSIZE;
@@ -200,8 +199,12 @@ public final class Client {
         modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
         WriteResult.Result modifyResult = modifyResponse.getResult();
 
+        System.out.println("zzzzzzzzzzzzzzz " + modifyResult.getValueDescriptor());
+
         // Do until receive OK response from MetadataStore
         while (modifyResult.getNumber() != 0) {
+            System.out.println("Attempting upload again.");
+
             // TODO: BUG: Version is incorrectly updating even if file doesn't change
 
             int currentVersion = modifyResponse.getCurrentVersion();
@@ -233,7 +236,7 @@ public final class Client {
 
             // Send new modify request
             modifyReqBuilder.setFilename(filename);
-
+            modifyReqBuilder.clearBlocklist();
             modifyReqBuilder.addAllBlocklist(hashList);
             modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
             modifyResult = modifyResponse.getResult();
@@ -241,7 +244,6 @@ public final class Client {
             System.out.println("modifyResult: " + modifyResult.getValueDescriptor());
             System.out.println("currentVersion: " + currentVersion);
             System.out.println("missingBlockCount: " + missingBlockCount);
-
         }
 
         System.out.println("Upload Success.");
@@ -262,6 +264,11 @@ public final class Client {
         // TODO: pathToStoreDownload is optional?
         // TODO: Add / at end of pathToStoreDownload if not already there
 
+        // TODO: Identify missing blocks
+
+        // TODO: Only download missing blocks
+
+        // TODO: Merge all blocks into one coherent file
 
         byte[] allData = new byte[0];
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -275,7 +282,9 @@ public final class Client {
         // Download Blocks
         Block.Builder blockBuilder = Block.newBuilder();
         ProtocolStringList blockList = response.getBlocklistList();
+        System.out.println(blockList.size());
         for (String hash : blockList) {
+            System.out.println(hash.toString()); //TODO: Bug, downloads hash twice if make change and upload again
             blockBuilder.setHash(hash);
             Block getBlockResponse = blockStub.getBlock(blockBuilder.build());
             ByteString data = getBlockResponse.getData();
