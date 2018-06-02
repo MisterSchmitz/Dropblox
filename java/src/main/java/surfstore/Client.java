@@ -139,7 +139,9 @@ public final class Client {
         int numBytes = fileContents.length;
         int numFullBlocks = numBytes / BLOCKSIZE;
         int numBytesRem = numBytes % BLOCKSIZE;
-        int numBlocks = numFullBlocks+1;
+        int numBlocks = numFullBlocks;
+        if (numBytesRem > 0)
+            numBlocks+=1;
 
         System.err.println("numFullBlocks " + numFullBlocks);
         System.err.println("numBytesRem " + numBytesRem);
@@ -158,6 +160,7 @@ public final class Client {
         // Last Small Block
         byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
         if (a.length > 0) {
+//            System.out.println("creating small block");
             Block b = bytesToBlock(a);
             blockList[i] = b;
             hashList.add(b.getHash());
@@ -268,48 +271,46 @@ public final class Client {
 
         ProtocolStringList blockList = response.getBlocklistList();
 
-        // TODO: TEST no pathToStoreDownload argument supplied
-
-        if (pathToStoreDownload != "" && !pathToStoreDownload.endsWith("/")) {
+        if (!pathToStoreDownload.endsWith("/")) {
             pathToStoreDownload = pathToStoreDownload.concat("/");
         }
 
-        // TODO: BUG - Exception thrown if file not on disk.
-
-        // Read the local file
-        File fileToDownload = new File(pathToStoreDownload+filename);
-        byte[] fileContents;
-        try {
-            fileContents = Files.readAllBytes(fileToDownload.toPath());
-        } catch (Exception e) {
-            fileContents = new byte[0];
-        }
-
-        int numBytes = fileContents.length;
-        int numFullBlocks = numBytes / BLOCKSIZE;
-        int numBlocks = numFullBlocks+1;
-
         // Create a set of Blocks
-//        Block[] localFileBlockList2 = new Block[numBlocks];
-        ArrayList<Block> localFileBlockList = new ArrayList<Block>();
         HashMap<String, ByteString> localFileHashMap = new HashMap<String, ByteString>();
         ArrayList<String> localFileHashList = new ArrayList<String>();
-        // First 4KB Blocks
-        int i;
-        for (i=0; i<numFullBlocks; i++) {
-            byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, (i+1)*BLOCKSIZE);
-            Block b = bytesToBlock(a);
-//            localFileBlockList2[i] = b;
-            localFileHashMap.put(b.getHash(), b.getData());
-            localFileHashList.add(b.getHash());
-        }
-        // Last Small Block
-        byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
-        if (a.length > 0) {
-            Block b = bytesToBlock(a);
-//            localFileBlockList2[i] = b;
-            localFileHashMap.put(b.getHash(), b.getData());
-            localFileHashList.add(b.getHash());
+
+        // Check for existing blocks in ALL FILES in download directory
+        File folder = new File(pathToStoreDownload);
+        File[] listOfFiles = folder.listFiles();
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                byte[] fileContents;
+                try {
+                    fileContents = Files.readAllBytes(file.toPath());
+                } catch (Exception e) {
+                    fileContents = new byte[0];
+                }
+
+                int numBytes = fileContents.length;
+                int numFullBlocks = numBytes / BLOCKSIZE;
+
+                // First 4KB Blocks
+                int i;
+                for (i=0; i<numFullBlocks; i++) {
+                    byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, (i+1)*BLOCKSIZE);
+                    Block b = bytesToBlock(a);
+                    localFileHashMap.put(b.getHash(), b.getData());
+                    localFileHashList.add(b.getHash());
+                }
+                // Last Small Block
+                byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
+                if (a.length > 0) {
+                    Block b = bytesToBlock(a);
+                    localFileHashMap.put(b.getHash(), b.getData());
+                    localFileHashList.add(b.getHash());
+                }
+            }
         }
 
         byte[] allData = new byte[0];
@@ -336,7 +337,6 @@ public final class Client {
                 data = getBlockResponse.getData();
                 downloadedBlockCounter += 1;
             }
-//            System.out.println(data.size() + " bytes received.");
 
             try {
                 outputStream.write(data.toByteArray());
@@ -344,7 +344,7 @@ public final class Client {
                 e.printStackTrace();
             }
         }
-        System.out.println("Downloaded " + downloadedBlockCounter + " new blocks.");
+        System.err.println("Downloaded " + downloadedBlockCounter + " new blocks.");
 
         // Write to file
         byte outfileContents[] = outputStream.toByteArray();
@@ -355,7 +355,7 @@ public final class Client {
             throw new RuntimeException(e);
         }
 
-        System.out.println(blockList.size() + " blocks written to file.");
+        System.err.println(blockList.size() + " blocks written to file.");
     }
 
     // TODO: Implement delete
@@ -374,7 +374,7 @@ public final class Client {
                 .help("Type of operation to perform");
         parser.addArgument("filename").type(String.class)
                 .help("File name on which to operate");
-        parser.addArgument("path_to_store").type(String.class).nargs("?").setDefault("")
+        parser.addArgument("path_to_store").type(String.class).nargs("?").setDefault("./")
                 .help("Optional path to store downloads");
 
         Namespace res = null;

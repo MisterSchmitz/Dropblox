@@ -184,7 +184,6 @@ public final class MetadataStore {
             String filename = request.getFilename();
             int version = request.getVersion();
             ProtocolStringList blockList = request.getBlocklistList();
-            System.out.println(blockList.size());
             logger.info("Writing file: " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
