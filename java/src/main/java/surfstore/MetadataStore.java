@@ -25,6 +25,7 @@ import surfstore.SurfStoreBasic.SimpleAnswer;
 import surfstore.SurfStoreBasic.WriteResult;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
+import static surfstore.MetadataStoreGrpc.*;
 
 public final class MetadataStore {
     private static final Logger logger = Logger.getLogger(MetadataStore.class.getName());
@@ -134,8 +135,9 @@ public final class MetadataStore {
          * </pre>
          */
         @Override
-        public void readFile(FileInfo request, StreamObserver<FileInfo> responseObserver) {
-            logger.info("Reading file" + request.getFilename());
+        public void readFile(surfstore.SurfStoreBasic.FileInfo request,
+                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
+            logger.info("Reading file " + request.getFilename());
 
             FileInfo.Builder responseBuilder = FileInfo.newBuilder();
 
@@ -180,18 +182,18 @@ public final class MetadataStore {
          * </pre>
          */
         @Override
-        public void modifyFile(FileInfo request, StreamObserver<WriteResult> responseObserver) {
+        public void modifyFile(surfstore.SurfStoreBasic.FileInfo request,
+                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
             String filename = request.getFilename();
             int version = request.getVersion();
             ProtocolStringList blockList = request.getBlocklistList();
-            logger.info("Writing file: " + filename + "Version: " + version);
+            logger.info("Writing file " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
             responseBuilder.setResultValue(0);
 
-            // TODO: Proper way to handle file not found when uploading?
             if (!this.version.containsKey(filename)){
-                System.err.println("Could not find file version.");
+                System.out.println("Not Found");
             }
 
             responseBuilder.setCurrentVersion(this.version.get(filename));
@@ -226,71 +228,76 @@ public final class MetadataStore {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
-//
-//        /**
-//         * <pre>
-//         * Delete a file.
-//         * This has the same semantics as ModifyFile, except that both the
-//         * client and server will not specify a blocklist or missing blocks.
-//         * As in ModifyFile, this call should return an error if the server
-//         * it is called on isn't the leader
-//         * </pre>
-//         */
-//        @Override
-//        public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
-//                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
+
+        /**
+         * <pre>
+         * Delete a file.
+         * This has the same semantics as ModifyFile, except that both the
+         * client and server will not specify a blocklist or missing blocks.
+         * As in ModifyFile, this call should return an error if the server
+         * it is called on isn't the leader
+         * </pre>
+         */
+        @Override
+        public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
+                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_DELETE_FILE, responseObserver);
-//        }
-//
-//        /**
-//         * <pre>
-//         * Query whether the MetadataStore server is currently the leader.
-//         * This call should work even when the server is in a "crashed" state
-//         * </pre>
-//         */
-//        @Override
-//        public void isLeader(surfstore.SurfStoreBasic.Empty request,
-//                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+            return;
+        }
+
+        /**
+         * <pre>
+         * Query whether the MetadataStore server is currently the leader.
+         * This call should work even when the server is in a "crashed" state
+         * </pre>
+         */
+        @Override
+        public void isLeader(surfstore.SurfStoreBasic.Empty request,
+                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_IS_LEADER, responseObserver);
-//        }
-//
-//        /**
-//         * <pre>
-//         * "Crash" the MetadataStore server.
-//         * Until Restore() is called, the server should reply to all RPCs
-//         * with an error (except Restore) and not send any RPCs to other servers.
-//         * </pre>
-//         */
-//        @Override
-//        public void crash(surfstore.SurfStoreBasic.Empty request,
-//                          io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
+            return;
+        }
+
+        /**
+         * <pre>
+         * "Crash" the MetadataStore server.
+         * Until Restore() is called, the server should reply to all RPCs
+         * with an error (except Restore) and not send any RPCs to other servers.
+         * </pre>
+         */
+        @Override
+        public void crash(surfstore.SurfStoreBasic.Empty request,
+                          io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_CRASH, responseObserver);
-//        }
-//
-//        /**
-//         * <pre>
-//         * "Restore" the MetadataStore server, allowing it to start
-//         * sending and responding to all RPCs once again.
-//         * </pre>
-//         */
-//        @Override
-//        public void restore(surfstore.SurfStoreBasic.Empty request,
-//                            io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
+            return;
+        }
+
+        /**
+         * <pre>
+         * "Restore" the MetadataStore server, allowing it to start
+         * sending and responding to all RPCs once again.
+         * </pre>
+         */
+        @Override
+        public void restore(surfstore.SurfStoreBasic.Empty request,
+                            io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_RESTORE, responseObserver);
-//        }
-//
-//        /**
-//         * <pre>
-//         * Find out if the node is crashed or not
-//         * (should always work, even if the node is crashed)
-//         * </pre>
-//         */
-//        @Override
-//        public void isCrashed(surfstore.SurfStoreBasic.Empty request,
-//                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+            return;
+        }
+
+        /**
+         * <pre>
+         * Find out if the node is crashed or not
+         * (should always work, even if the node is crashed)
+         * </pre>
+         */
+        @Override
+        public void isCrashed(surfstore.SurfStoreBasic.Empty request,
+                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
 //            asyncUnimplementedUnaryCall(METHOD_IS_CRASHED, responseObserver);
-//        }
-//
+            return;
+        }
+
         /**
          * <pre>
          * Returns the current committed version of the requested file
@@ -301,8 +308,31 @@ public final class MetadataStore {
          * </pre>
          */
         @Override
-        public void getVersion(FileInfo request, StreamObserver<FileInfo> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_GET_VERSION, responseObserver);
+        public void getVersion(surfstore.SurfStoreBasic.FileInfo request,
+                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
+            String filename = request.getFilename();
+            logger.info("Getting version of file: " + filename);
+
+            FileInfo.Builder responseBuilder = FileInfo.newBuilder();
+
+            responseBuilder.setFilename(filename);
+
+            int v;
+            if (!version.containsKey(filename)) {
+                v=0;
+                logger.info("File: " + filename + " Not found.");
+                System.out.println("Not Found");
+            }
+            else {
+                v = version.get(filename);
+                logger.info("File: " + filename + " Version: " + v);
+                System.out.println(v);
+            }
+            responseBuilder.setVersion(v);
+
+            FileInfo response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         private Map<String, Integer> version = new HashMap<String, Integer>();

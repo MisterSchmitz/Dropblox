@@ -108,6 +108,9 @@ public final class Client {
         if(operation.equals("delete")) {
             delete(filename);
         }
+        if(operation.equals("getversion")) {
+            getVersion(filename);
+        }
 
 //        Block b1 = stringToBlock("block_01");
 //        Block b2 = stringToBlock("block_02");
@@ -135,7 +138,16 @@ public final class Client {
     private void upload(String filename) {
         System.err.println("Uploading file " + filename);
 
-        byte[] fileContents = readLocalFile(filename);
+        // Read the local file
+        File fileToUpload = new File(filename);
+        byte[] fileContents;
+        try {
+            fileContents = Files.readAllBytes(fileToUpload.toPath());
+        } catch (Exception e) {
+            System.out.println("Not Found");
+            return;
+        }
+
         int numBytes = fileContents.length;
         int numFullBlocks = numBytes / BLOCKSIZE;
         int numBytesRem = numBytes % BLOCKSIZE;
@@ -175,7 +187,7 @@ public final class Client {
 
         // If file does not exist, upload file to BlockStore
         if (fileVersion == 0) {
-            System.out.println("File does not exist. Creating...");
+            System.out.println("Not Found");
             // Upload all Blocks to BlockStore
             for (Block block : blockList) {
                 Block.Builder storeBlockReqBuilder = Block.newBuilder();
@@ -241,20 +253,8 @@ public final class Client {
 //            System.out.println("missingBlockCount: " + missingBlockCount);
         }
 
-        System.out.println("Upload Success.");
-    }
-
-    private byte[] readLocalFile(String filename) {
-        // Read the local file
-        File fileToUpload = new File(filename);
-        byte[] fileContents;
-        try {
-            fileContents = Files.readAllBytes(fileToUpload.toPath());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        return fileContents;
+        System.out.println("OK");
+        System.err.println("Upload Success.");
     }
 
 
@@ -265,7 +265,7 @@ public final class Client {
         FileInfo response = metadataStub.readFile(builder.build());
 
         if (response.getBlocklistCount() <= 0) {
-            System.err.println("File not found. Aborting.");
+            System.out.println("Not Found");
             return;
         }
 
@@ -356,11 +356,30 @@ public final class Client {
         }
 
         System.err.println(blockList.size() + " blocks written to file.");
+        System.out.println("OK");
     }
 
     // TODO: Implement delete
     private void delete(String filename) {
         System.err.println("Deleting file " + filename);
+
+        // Check if file exists in Metadatastore, and get Version
+        FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
+        FileInfo readRequest = readReqBuilder.setFilename(filename).build();
+        FileInfo readResponse = metadataStub.readFile(readRequest);
+        int fileVersion = readResponse.getVersion();
+    }
+
+    private void getVersion(String filename) {
+        System.err.println("Getting version of file " + filename);
+
+        // Check if file exists in Metadatastore, and get Version
+        FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
+        FileInfo readRequest = readReqBuilder.setFilename(filename).build();
+        FileInfo readResponse = metadataStub.readFile(readRequest);
+        int fileVersion = readResponse.getVersion();
+
+        System.out.println(fileVersion);
     }
 
 

@@ -1,4 +1,33 @@
 NEXT STEPS:
+* Implement GetVersion for Centralized
+
+
+GET VERSION
+Returns the current version of the given file.
+If SurfStore is centralized, then it should return a single value.
+If SurfStore is distributed, it should return three (number of MetaDataStores) values separated by spaces.
+
+Piazza
+* when ReadFile() is called on a deleted file the version field of the FileInfo response returned by the MDS to the Client should still be the correct version number of the file
+* the Client should detect that the file is deleted by seeing a hash list with a single hash "0" and output "Not Found" to stdout
+* Return the version, 0 if it doesn't exist, and whatever the right version is if it is deleted.
+* Each server leader or follower just returns its own version
+* Use logger.info to sysout, not System.out.println...
+
+
+
+* When uploading a file for the first time, we attempt to readFile, and file is not found. Should client print both Not Found and also OK if upload is successful?
+
+
+Create a File test:
+1. Does the result (Both WriteResult obtained after modifyFile and FileInfo obtained after readFile) contain the valid version number (remember that this is a "creation test")?
+2. Does the result (FileInfo obtained after readFile) have the valid filename set? (in all the cases, even in the error ones, the result should set the filename as the same as that sent by the client)?
+3. Does the result (WriteResult obtained after modifyFile) contain OLD_VERSION as the error code returned?
+4. Does the MetaDataStore throw an error after processing this test?
+5. Does the BlockStore throw an error after processing this test?
+6. Does the MDS return at least some valid result, which the client can parse?
+7. Are the BlockStore and MDS alive, or did either of them crash while running this testcase? 
+
 
 HIGH-LEVEL NEXT STEP(s):
 DONE Reads the local file
@@ -37,5 +66,4 @@ The client then downloads the blocks from the BlockStore to form the complete fi
 
 https://cseweb.ucsd.edu/~gmporter/classes/sp18/cse291/post/project2/downloadExample.png
 
-AmOCmYm2/ZVPcrqvL8ZLwuLwHWktTecphuqAj26ZgT8=
 
