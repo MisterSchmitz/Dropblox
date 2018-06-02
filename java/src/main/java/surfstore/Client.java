@@ -112,23 +112,6 @@ public final class Client {
             getVersion(filename);
         }
 
-//        Block b1 = stringToBlock("block_01");
-//        Block b2 = stringToBlock("block_02");
-//
-//        ensure(blockStub.hasBlock(b1).getAnswer() == false);
-//        ensure(blockStub.hasBlock(b2).getAnswer() == false);
-//
-//        blockStub.storeBlock(b1);
-//        ensure(blockStub.hasBlock(b1).getAnswer() == true);
-//
-//        blockStub.storeBlock(b2);
-//        ensure(blockStub.hasBlock(b2).getAnswer() == true);
-//
-//        Block b1prime = blockStub.getBlock(b1);
-//        ensure(b1prime.getHash().equals(b1.getHash()));
-//        ensure(b1prime.getData().equals(b1.getData()));
-//
-//        logger.info("We passed all the tests... yay!");
     }
 
     /*
@@ -144,6 +127,7 @@ public final class Client {
         try {
             fileContents = Files.readAllBytes(fileToUpload.toPath());
         } catch (Exception e) {
+            System.err.println("File not found on disk. Exiting.");
             System.out.println("Not Found");
             return;
         }
@@ -154,9 +138,9 @@ public final class Client {
         int numBlocks = numFullBlocks;
         if (numBytesRem > 0)
             numBlocks+=1;
-
-        System.err.println("numFullBlocks " + numFullBlocks);
-        System.err.println("numBytesRem " + numBytesRem);
+//
+//        System.err.println("numFullBlocks " + numFullBlocks);
+//        System.err.println("numBytesRem " + numBytesRem);
 
         // Create a set of Blocks
         Block[] blockList = new Block[numBlocks];
@@ -179,6 +163,7 @@ public final class Client {
         }
 
         // Check if file exists in Metadatastore, and get Version
+        System.err.println("Checking if file exists in Metadatastore.");
         FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
         FileInfo readResponse = metadataStub.readFile(readRequest);
@@ -195,6 +180,9 @@ public final class Client {
                 storeBlockReqBuilder.setData(block.getData());
                 blockStub.storeBlock(storeBlockReqBuilder.build());
             }
+        }
+        else {
+            System.out.println("OK");
         }
 
         // Send upload request to Metadatastore
@@ -359,6 +347,7 @@ public final class Client {
         System.out.println("OK");
     }
 
+
     // TODO: Implement delete
     private void delete(String filename) {
         System.err.println("Deleting file " + filename);
@@ -368,7 +357,19 @@ public final class Client {
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
         FileInfo readResponse = metadataStub.readFile(readRequest);
         int fileVersion = readResponse.getVersion();
+
+        if (fileVersion == 0)
+            return;
+
+        FileInfo.Builder deleteReqBuilder = FileInfo.newBuilder();
+        deleteReqBuilder.setFilename(filename);
+        deleteReqBuilder.setVersion(fileVersion+1);
+
+        WriteResult deleteResponse = metadataStub.deleteFile(deleteReqBuilder.build());
+        System.out.println(deleteResponse.getResult().getValueDescriptor());
+        System.err.println("Server Response: " + deleteResponse.getResult().getValueDescriptor());
     }
+
 
     private void getVersion(String filename) {
         System.err.println("Getting version of file " + filename);

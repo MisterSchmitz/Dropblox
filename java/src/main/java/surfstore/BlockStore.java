@@ -22,7 +22,6 @@ import surfstore.SurfStoreBasic.SimpleAnswer;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
-
 public final class BlockStore {
     private static final Logger logger = Logger.getLogger(BlockStore.class.getName());
 
@@ -109,7 +108,6 @@ public final class BlockStore {
             responseObserver.onCompleted();
         }
 
-        // TODO: Implement the other RPCs!
         @Override
         public void storeBlock(surfstore.SurfStoreBasic.Block request,
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {

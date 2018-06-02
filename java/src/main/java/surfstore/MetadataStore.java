@@ -2,6 +2,7 @@ package surfstore;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -194,6 +195,8 @@ public final class MetadataStore {
             String filename = request.getFilename();
             int version = request.getVersion();
             ProtocolStringList blockList = request.getBlocklistList();
+            ArrayList<String> newBlockList = new ArrayList<String>();
+
             logger.info("Writing file " + filename + "Version: " + version);
 
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
@@ -212,6 +215,7 @@ public final class MetadataStore {
             else {
                 // Get missing blocks
                 for (String hash : blockList) {
+                    newBlockList.add(hash);
                     Block.Builder builder = Block.newBuilder();
                     builder.setHash(hash);
                     SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
@@ -223,7 +227,7 @@ public final class MetadataStore {
                 }
                 else {
                     // TODO TEST: If version is exactly one more than current version, update hashlist
-                    this.hashlist.put(filename, blockList);
+                    this.hashlist.put(filename, newBlockList);
                     this.version.put(filename, version);
                 }
 
@@ -249,8 +253,37 @@ public final class MetadataStore {
         @Override
         public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_DELETE_FILE, responseObserver);
-            return;
+            //TODO: Error if server not leader
+
+            String filename = request.getFilename();
+            int version = request.getVersion();
+            logger.info("Attempting to Delete file " + filename + "Version: " + version);
+
+            WriteResult.Builder responseBuilder = WriteResult.newBuilder();
+
+            if(!this.version.containsKey(filename)) {
+                responseBuilder.setResultValue(0);
+                responseBuilder.setCurrentVersion(0);
+            }
+            else {
+                if(version != this.version.get(filename)+1) {
+                    responseBuilder.setResultValue(1); // OLD_VERSION
+                    responseBuilder.setCurrentVersion(this.version.get(filename));
+                }
+                else {
+                    responseBuilder.setResultValue(0);
+                    responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
+                    this.version.put(filename, version);
+                    ArrayList<String> newBlockList = new ArrayList<String>();
+                    newBlockList.add("0");
+                    this.hashlist.put(filename, newBlockList);
+                    logger.info("Deleted file " + filename + "Version: " + version);
+                }
+            }
+
+            WriteResult response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         /**
@@ -262,8 +295,8 @@ public final class MetadataStore {
         @Override
         public void isLeader(surfstore.SurfStoreBasic.Empty request,
                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_IS_LEADER, responseObserver);
-            return;
+            asyncUnimplementedUnaryCall(METHOD_IS_LEADER, responseObserver);
+//            return;
         }
 
         /**
@@ -276,8 +309,8 @@ public final class MetadataStore {
         @Override
         public void crash(surfstore.SurfStoreBasic.Empty request,
                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_CRASH, responseObserver);
-            return;
+            asyncUnimplementedUnaryCall(METHOD_CRASH, responseObserver);
+//            return;
         }
 
         /**
@@ -289,8 +322,8 @@ public final class MetadataStore {
         @Override
         public void restore(surfstore.SurfStoreBasic.Empty request,
                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_RESTORE, responseObserver);
-            return;
+            asyncUnimplementedUnaryCall(METHOD_RESTORE, responseObserver);
+//            return;
         }
 
         /**
@@ -344,6 +377,6 @@ public final class MetadataStore {
         }
 
         private Map<String, Integer> version = new HashMap<String, Integer>();
-        private Map<String, ProtocolStringList> hashlist = new HashMap<String, ProtocolStringList>();
+        private Map<String, ArrayList<String>> hashlist = new HashMap<String, ArrayList<String>>();
     }
 }
