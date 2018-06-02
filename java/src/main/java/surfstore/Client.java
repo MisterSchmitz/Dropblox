@@ -1,8 +1,11 @@
 package surfstore;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -86,17 +89,22 @@ public final class Client {
         return builder.build(); // turns the Builder into a Block
     }
 
-    private void go(String operation, String filename, String pathToStore) {
+    private void go(String operation, String filename, String pathToStoreDownload) {
         metadataStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Metadata server");
 
-//        blockStub.ping(Empty.newBuilder().build());
-//        logger.info("Successfully pinged the Blockstore server");
-//
-//        // TODO: Implement your client here
+        blockStub.ping(Empty.newBuilder().build());
+        logger.info("Successfully pinged the Blockstore server");
+
 
         if(operation.equals("upload")) {
             upload(filename);
+        }
+        if(operation.equals("download")) {
+            download(filename, pathToStoreDownload);
+        }
+        if(operation.equals("delete")) {
+            delete(filename);
         }
 
 //        Block b1 = stringToBlock("block_01");
@@ -141,7 +149,7 @@ public final class Client {
         int numBytesRem = numBytes % BLOCKSIZE;
         int numBlocks = numFullBlocks+1;
 
-        System.err.println("numBlocks " + numFullBlocks);
+        System.err.println("numFullBlocks " + numFullBlocks);
         System.err.println("numBytesRem " + numBytesRem);
 
         // Create a set of Blocks
@@ -237,6 +245,62 @@ public final class Client {
         }
 
         System.out.println("Upload Success.");
+    }
+
+
+    private void download(String filename, String pathToStoreDownload) {
+        System.err.println("Downloading file " + filename);
+        FileInfo.Builder builder = FileInfo.newBuilder();
+        builder.setFilename(filename);
+        FileInfo response = metadataStub.readFile(builder.build());
+
+        if (response.getBlocklistCount() <= 0) {
+            System.err.println("File not found. Aborting.");
+            return;
+        }
+
+        // TODO: pathToStoreDownload is optional?
+        // TODO: Add / at end of pathToStoreDownload if not already there
+
+
+        byte[] allData = new byte[0];
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            outputStream.write(allData);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Download Blocks
+        Block.Builder blockBuilder = Block.newBuilder();
+        ProtocolStringList blockList = response.getBlocklistList();
+        for (String hash : blockList) {
+            blockBuilder.setHash(hash);
+            Block getBlockResponse = blockStub.getBlock(blockBuilder.build());
+            ByteString data = getBlockResponse.getData();
+//            System.out.println(data.size() + " bytes received.");
+
+            try {
+                outputStream.write(data.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Write to file
+        byte fileContents[] = outputStream.toByteArray();
+        try {
+            Files.write(Paths.get(pathToStoreDownload+"/"+filename), fileContents);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    // TODO: Implement delete
+    private void delete(String filename) {
+        System.err.println("Deleting file " + filename);
     }
 
 
