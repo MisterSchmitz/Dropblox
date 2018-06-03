@@ -375,6 +375,10 @@ public final class MetadataStore {
 
             // TODO: More stuff to actually restore state (catch up to committed log entries)
 
+            // Ping leader to get up to speed
+
+
+
             Empty.Builder responseBuilder = Empty.newBuilder();
             Empty response = responseBuilder.build();
             responseObserver.onNext(response);

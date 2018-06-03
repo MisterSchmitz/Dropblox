@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -197,7 +196,7 @@ public final class Client {
         System.err.println("First upload attempt: "+modifyResult.getValueDescriptor());
         // Do until receive OK response from MetadataStore
         while (modifyResult.getNumber() != 0) {
-            System.out.println("Attempting upload again.");
+            System.err.println("Attempting upload again.");
 
             // TODO: BUG: Version is incorrectly updating even if file doesn't change
 
@@ -212,7 +211,7 @@ public final class Client {
             if (modifyResult.getNumber() == 2)  // MISSING_BLOCKS
             {
                 // Upload the missing Blocks to BlockStore
-                System.out.println("Uploading missing blocks...");
+                System.err.println("Uploading missing blocks...");
                 // TODO: Somehow make this atomic across clients
                 for (Block block : blockList) {
                     if (missingBlocks.contains(block.getHash())) {
@@ -252,6 +251,12 @@ public final class Client {
         FileInfo response = metadataStub.readFile(builder.build());
 
         if (response.getBlocklistCount() <= 0) {
+            System.out.println("Not Found");
+            return;
+        }
+
+        // Deleted file
+        if (response.getBlocklistList().contains("0")) {
             System.out.println("Not Found");
             return;
         }

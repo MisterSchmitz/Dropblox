@@ -15,8 +15,8 @@
       <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="348">
-              <caret line="43" column="123" lean-forward="true" selection-start-line="43" selection-start-column="123" selection-end-line="43" selection-end-column="123" />
+            <state relative-caret-position="366">
+              <caret line="257" column="23" selection-start-line="257" selection-start-column="23" selection-end-line="257" selection-end-column="23" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -27,8 +27,8 @@
       <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="231">
-              <caret line="287" column="31" selection-start-line="287" selection-start-column="31" selection-end-line="287" selection-end-column="31" />
+            <state relative-caret-position="441">
+              <caret line="379" selection-start-line="379" selection-end-line="379" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#2349#2640#0" expanded="true" />
@@ -98,9 +98,10 @@
       <find>modi</find>
       <find>MetadataStoreImpl</find>
       <find>configR</find>
-      <find>protected ConfigReader config;</find>
+      <find />
       <find>delete</find>
       <find>.clear</find>
+      <find>attempting</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -192,7 +193,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.DIST Client upload simple">
+  <component name="RunManager" selected="Application.DIST Client download simple">
     <configuration name="BlockStore" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.BlockStore" />
       <module name="surfstore" />
@@ -431,12 +432,12 @@
       <workItem from="1527707345092" duration="21515000" />
       <workItem from="1527848800098" duration="7389000" />
       <workItem from="1527904603070" duration="35573000" />
-      <workItem from="1527982564262" duration="2835000" />
+      <workItem from="1527982564262" duration="5224000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="77002000" />
+    <option name="totallyTimeSpent" value="79391000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1964" y="-11" width="1877" height="1092" extended-state="6" />
@@ -474,14 +475,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/surfstore/Client.java</url>
-          <line>242</line>
-          <properties />
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-      </breakpoints>
       <option name="time" value="10" />
     </breakpoint-manager>
   </component>
@@ -830,10 +823,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="67" selection-start-line="22" selection-start-column="67" selection-end-line="22" selection-end-column="67" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="287" column="31" selection-start-line="287" selection-start-column="31" selection-end-line="287" selection-end-column="31" />
+        <state relative-caret-position="441">
+          <caret line="379" selection-start-line="379" selection-end-line="379" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#2349#2640#0" expanded="true" />
@@ -847,20 +850,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="67" selection-start-line="22" selection-start-column="67" selection-end-line="22" selection-end-column="67" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="348">
-          <caret line="43" column="123" lean-forward="true" selection-start-line="43" selection-start-column="123" selection-end-line="43" selection-end-column="123" />
+        <state relative-caret-position="366">
+          <caret line="257" column="23" selection-start-line="257" selection-start-column="23" selection-end-line="257" selection-end-column="23" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
