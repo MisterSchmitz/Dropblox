@@ -1,7 +1,17 @@
 NEXT STEPS:
 * Implement GetVersion for Centralized
 
+DELETE
+*  The version is incremented any time the file is created, modified, or deleted.
+* To delete a file, the MetadataStore service simply notes that the file is deleted. 
+In this way, deletion events also require version numbers, which prevents race conditions that can occur when one client deletes a file concurrently with another client deleting that file. 
+In SurfStore, we are going to represent a deleted file as a file that has a hashlist with a single hash value of “0”.
+Note that this means the file must be recreated before it can be read by a client again.
 
+* DeleteFile(f,v): Deletes file f. Like ModifyFile(), the provided version number v must be one bigger than the most up-date-date version.
+* To create a file that was previously deleted when it was at version v, use ModifyFile with a version number of v+1.
+
+	
 GET VERSION
 Returns the current version of the given file.
 If SurfStore is centralized, then it should return a single value.

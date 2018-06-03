@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -33,9 +32,13 @@ public final class MetadataStore {
 
     protected Server server;
 	protected ConfigReader config;
+    protected int serverId;
+	protected boolean isLeader;
+    protected boolean isCrashed;
 
     public MetadataStore(ConfigReader config) {
     	this.config = config;
+        this.isCrashed = false;
 	}
 
 	private void start(int port, int numThreads) throws IOException {
@@ -44,6 +47,21 @@ public final class MetadataStore {
                 .executor(Executors.newFixedThreadPool(numThreads))
                 .build()
                 .start();
+
+        for (int i=1; i<=config.getNumMetadataServers(); i++) {
+            int currPort = config.metadataPorts.get(i);
+            if (currPort == server.getPort()) {
+                this.serverId = i;
+                System.err.println("serverId: " + i);
+                if (config.getLeaderNum() == i) {
+                    this.isLeader = true;
+                } else {
+                    this.isLeader = false;
+                }
+                break;
+            }
+        }
+
         logger.info("Server started, listening on " + port);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -91,7 +109,7 @@ public final class MetadataStore {
         if (c_args == null){
             throw new RuntimeException("Argument parsing failed");
         }
-        
+
         File configf = new File(c_args.getString("config_file"));
         ConfigReader config = new ConfigReader(configf);
 
@@ -106,7 +124,9 @@ public final class MetadataStore {
 //        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
 
         final MetadataStore server = new MetadataStore(config);
-        server.start(config.getMetadataPort(c_args.getInt("number")), c_args.getInt("threads"));
+        server.start(
+                config.getMetadataPort(c_args.getInt("number")),
+                c_args.getInt("threads"));
         server.blockUntilShutdown();
     }
 
@@ -139,15 +159,16 @@ public final class MetadataStore {
          * If the file does not exist, "version" should be set to 0.
          *
          * This command should return an error if it is called on a server
-         * that is not the leader
+         * that is not the leader FROM PIAZZA:
+         * Set the filename and the version to the current version of the file as stored on that follower.
          * </pre>
          */
         @Override
         public void readFile(surfstore.SurfStoreBasic.FileInfo request,
                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
-            logger.info("Reading file " + request.getFilename());
-
             FileInfo.Builder responseBuilder = FileInfo.newBuilder();
+
+            logger.info("Reading file " + request.getFilename());
 
             // Filename
             String filename = request.getFilename();
@@ -169,6 +190,7 @@ public final class MetadataStore {
             FileInfo response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
+
         }
 
         /**
@@ -192,47 +214,52 @@ public final class MetadataStore {
         @Override
         public void modifyFile(surfstore.SurfStoreBasic.FileInfo request,
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-            String filename = request.getFilename();
-            int version = request.getVersion();
-            ProtocolStringList blockList = request.getBlocklistList();
-            ArrayList<String> newBlockList = new ArrayList<String>();
-
-            logger.info("Writing file " + filename + "Version: " + version);
-
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
-            responseBuilder.setResultValue(0);
 
-            if (!this.version.containsKey(filename)){
-                this.version.put(filename, 0);
-            }
-
-            // TODO: Come back to this
-            responseBuilder.setCurrentVersion(this.version.get(filename));
-
-            if (version != this.version.get(filename)+1) {
-                responseBuilder.setResultValue(1); // OLD_VERSION
+            if (!isLeader || isCrashed) {
+                responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
-                // Get missing blocks
-                for (String hash : blockList) {
-                    newBlockList.add(hash);
-                    Block.Builder builder = Block.newBuilder();
-                    builder.setHash(hash);
-                    SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
-                    if (!blockExists.getAnswer())
-                        responseBuilder.addMissingBlocks(hash);
-                }
-                if (responseBuilder.getMissingBlocksCount() > 0) {
-                    responseBuilder.setResultValue(2); // MISSING_BLOCKS
-                }
-                else {
-                    // TODO TEST: If version is exactly one more than current version, update hashlist
-                    this.hashlist.put(filename, newBlockList);
-                    this.version.put(filename, version);
+
+                String filename = request.getFilename();
+                int version = request.getVersion();
+                ProtocolStringList blockList = request.getBlocklistList();
+                ArrayList<String> newBlockList = new ArrayList<String>();
+
+                logger.info("Writing file " + filename + "Version: " + version);
+
+                responseBuilder.setResultValue(0);
+
+                if (!this.version.containsKey(filename)) {
+                    this.version.put(filename, 0);
                 }
 
-                if (responseBuilder.getResultValue() == 0) {
-                    responseBuilder.setCurrentVersion(this.version.get(filename));
+                // TODO: Come back to this
+                responseBuilder.setCurrentVersion(this.version.get(filename));
+
+                if (version != this.version.get(filename) + 1) {
+                    responseBuilder.setResultValue(1); // OLD_VERSION
+                } else {
+                    // Get missing blocks
+                    for (String hash : blockList) {
+                        newBlockList.add(hash);
+                        Block.Builder builder = Block.newBuilder();
+                        builder.setHash(hash);
+                        SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
+                        if (!blockExists.getAnswer())
+                            responseBuilder.addMissingBlocks(hash);
+                    }
+                    if (responseBuilder.getMissingBlocksCount() > 0) {
+                        responseBuilder.setResultValue(2); // MISSING_BLOCKS
+                    } else {
+                        // TODO TEST: If version is exactly one more than current version, update hashlist
+                        this.hashlist.put(filename, newBlockList);
+                        this.version.put(filename, version);
+                    }
+
+                    if (responseBuilder.getResultValue() == 0) {
+                        responseBuilder.setCurrentVersion(this.version.get(filename));
+                    }
                 }
             }
 
@@ -253,31 +280,34 @@ public final class MetadataStore {
         @Override
         public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-            //TODO: Error if server not leader
-
-            String filename = request.getFilename();
-            int version = request.getVersion();
-            logger.info("Attempting to Delete file " + filename + "Version: " + version);
-
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
 
-            if(!this.version.containsKey(filename)) {
-                responseBuilder.setResultValue(0);
-                responseBuilder.setCurrentVersion(0);
+            if (!isLeader || isCrashed) {
+                responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
-                if(version != this.version.get(filename)+1) {
-                    responseBuilder.setResultValue(1); // OLD_VERSION
-                    responseBuilder.setCurrentVersion(this.version.get(filename));
+                String filename = request.getFilename();
+                int version = request.getVersion();
+                logger.info("Attempting to Delete file " + filename + "Version: " + version);
+
+                if(!this.version.containsKey(filename)) {
+                    responseBuilder.setResultValue(0);
+                    responseBuilder.setCurrentVersion(0);
                 }
                 else {
-                    responseBuilder.setResultValue(0);
-                    responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
-                    this.version.put(filename, version);
-                    ArrayList<String> newBlockList = new ArrayList<String>();
-                    newBlockList.add("0");
-                    this.hashlist.put(filename, newBlockList);
-                    logger.info("Deleted file " + filename + "Version: " + version);
+                    if(version != this.version.get(filename)+1) {
+                        responseBuilder.setResultValue(1); // OLD_VERSION
+                        responseBuilder.setCurrentVersion(this.version.get(filename));
+                    }
+                    else {
+                        responseBuilder.setResultValue(0);
+                        responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
+                        this.version.put(filename, version);
+                        ArrayList<String> newBlockList = new ArrayList<String>();
+                        newBlockList.add("0");
+                        this.hashlist.put(filename, newBlockList);
+                        logger.info("Deleted file " + filename + "Version: " + version);
+                    }
                 }
             }
 
@@ -295,8 +325,13 @@ public final class MetadataStore {
         @Override
         public void isLeader(surfstore.SurfStoreBasic.Empty request,
                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-            asyncUnimplementedUnaryCall(METHOD_IS_LEADER, responseObserver);
-//            return;
+
+            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder();
+            responseBuilder.setAnswer(isLeader);
+
+            SimpleAnswer response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         /**
@@ -309,8 +344,12 @@ public final class MetadataStore {
         @Override
         public void crash(surfstore.SurfStoreBasic.Empty request,
                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-            asyncUnimplementedUnaryCall(METHOD_CRASH, responseObserver);
-//            return;
+            isCrashed = true;
+
+            Empty.Builder responseBuilder = Empty.newBuilder();
+            Empty response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         /**
@@ -322,8 +361,14 @@ public final class MetadataStore {
         @Override
         public void restore(surfstore.SurfStoreBasic.Empty request,
                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-            asyncUnimplementedUnaryCall(METHOD_RESTORE, responseObserver);
-//            return;
+            isCrashed = false;
+
+            // TODO: More stuff to actually restore state (catch up to committed log entries)
+
+            Empty.Builder responseBuilder = Empty.newBuilder();
+            Empty response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         /**
@@ -335,8 +380,13 @@ public final class MetadataStore {
         @Override
         public void isCrashed(surfstore.SurfStoreBasic.Empty request,
                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-//            asyncUnimplementedUnaryCall(METHOD_IS_CRASHED, responseObserver);
-            return;
+
+            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder();
+            responseBuilder.setAnswer(isCrashed);
+
+            SimpleAnswer response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         }
 
         /**
