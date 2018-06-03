@@ -12,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2970">
-              <caret line="198" column="59" lean-forward="true" selection-start-line="198" selection-start-column="59" selection-end-line="198" selection-end-column="59" />
+            <state relative-caret-position="365">
+              <caret line="200" column="63" selection-start-line="200" selection-start-column="63" selection-end-line="200" selection-end-column="63" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -24,23 +24,18 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="739">
-              <caret line="311" column="25" lean-forward="true" selection-start-line="311" selection-start-column="25" selection-end-line="311" selection-end-column="25" />
+            <state relative-caret-position="4230">
+              <caret line="299" lean-forward="true" selection-start-line="299" selection-end-line="299" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#2349#2640#0" expanded="true" />
-                <element signature="e#2639#2640#0" expanded="true" />
+                <element signature="e#2266#2557#0" expanded="true" />
+                <element signature="e#2556#2557#0" expanded="true" />
+                <element signature="e#2720#2721#0" expanded="true" />
+                <element signature="e#2773#2774#0" expanded="true" />
                 <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-                <element signature="e#8320#8328#0" expanded="true" />
-                <element signature="e#11699#11707#0" expanded="true" />
-                <element signature="e#15971#15979#0" expanded="true" />
-                <element signature="e#15935#15943#0" expanded="true" />
-                <element signature="e#17795#17803#0" expanded="true" />
-                <element signature="e#15666#15683#0" expanded="true" />
-                <element signature="e#15756#15783#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -51,15 +46,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="112">
               <caret line="72" column="50" selection-start-line="72" selection-start-column="50" selection-end-line="72" selection-end-column="50" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MetadataStoreGrpc.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="864">
-              <caret line="342" column="5" lean-forward="true" selection-start-line="342" selection-start-column="5" selection-end-line="342" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -87,7 +73,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>implbase</find>
       <find>util</find>
       <find>FileInfo</find>
       <find>fileinfo</find>
@@ -117,6 +102,7 @@
       <find>this.version</find>
       <find>ProtocolStringList</find>
       <find>commit</find>
+      <find>atomic</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -125,9 +111,9 @@
         <option value="$PROJECT_DIR$/src/main/java/surfstore/HashUtils.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java" />
-        <option value="$PROJECT_DIR$/src/main/java/surfstore/Client.java" />
         <option value="$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
+        <option value="$PROJECT_DIR$/src/main/java/surfstore/Client.java" />
       </list>
     </option>
   </component>
@@ -184,41 +170,6 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="proto" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="surfstore" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="surfstore" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
-              <item name="generated-sources" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="surfstore" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
-              <item name="generated-sources" type="462c0819:PsiDirectoryNode" />
-              <item name="protobuf" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="surfstore" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
-              <item name="generated-sources" type="462c0819:PsiDirectoryNode" />
-              <item name="protobuf" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc-java" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="surfstore" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="target" type="462c0819:PsiDirectoryNode" />
-              <item name="generated-sources" type="462c0819:PsiDirectoryNode" />
-              <item name="protobuf" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc-java" type="462c0819:PsiDirectoryNode" />
-              <item name="surfstore" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -228,6 +179,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
+    <property name="extract.method.default.visibility" value="private" />
     <property name="last_opened_file_path" value="/media/mike/Windows/ucsd/cs120/proj" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
@@ -243,7 +195,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Maven.build_protobuf">
+  <component name="RunManager" selected="Application.Client download big">
     <configuration name="BlockStore" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.BlockStore" />
       <module name="surfstore" />
@@ -482,12 +434,12 @@
       <workItem from="1527707345092" duration="21515000" />
       <workItem from="1527848800098" duration="7389000" />
       <workItem from="1527904603070" duration="35573000" />
-      <workItem from="1527982564262" duration="14565000" />
+      <workItem from="1527982564262" duration="16035000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="88732000" />
+    <option name="totallyTimeSpent" value="90202000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1964" y="-11" width="1877" height="1092" extended-state="6" />
@@ -499,11 +451,11 @@
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3248" side_tool="true" visible="true" weight="0.28732106" />
       <window_info anchor="right" id="Maven Projects" order="4" />
       <window_info anchor="bottom" id="Version Control" order="10" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.6752" visible="true" weight="0.28732106" />
+      <window_info active="true" anchor="bottom" id="Run" order="3" sideWeight="0.6752" visible="true" weight="0.28732106" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Designer" order="1" />
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49919742" visible="true" weight="0.17226666" />
-      <window_info active="true" anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
+      <window_info anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="4" sideWeight="0.49973333" weight="0.3997955" />
@@ -555,16 +507,11 @@
           <caret line="34" column="27" lean-forward="true" selection-start-line="34" selection-start-column="27" selection-end-line="34" selection-end-column="27" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2349#2640#0" expanded="true" />
-            <element signature="e#2639#2640#0" expanded="true" />
+            <element signature="e#2266#2557#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2720#2721#0" expanded="true" />
+            <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-            <element signature="e#8320#8328#0" expanded="true" />
-            <element signature="e#11699#11707#0" expanded="true" />
-            <element signature="e#15971#15979#0" expanded="true" />
-            <element signature="e#15935#15943#0" expanded="true" />
-            <element signature="e#17795#17803#0" expanded="true" />
-            <element signature="e#15666#15683#0" expanded="true" />
-            <element signature="e#15756#15783#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -615,16 +562,11 @@
           <caret line="221" column="60" lean-forward="true" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2349#2640#0" expanded="true" />
-            <element signature="e#2639#2640#0" expanded="true" />
+            <element signature="e#2266#2557#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2720#2721#0" expanded="true" />
+            <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-            <element signature="e#8320#8328#0" expanded="true" />
-            <element signature="e#11699#11707#0" expanded="true" />
-            <element signature="e#15971#15979#0" expanded="true" />
-            <element signature="e#15935#15943#0" expanded="true" />
-            <element signature="e#17795#17803#0" expanded="true" />
-            <element signature="e#15666#15683#0" expanded="true" />
-            <element signature="e#15756#15783#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -682,16 +624,11 @@
           <caret line="46" column="49" selection-start-line="46" selection-start-column="32" selection-end-line="46" selection-end-column="49" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2349#2640#0" expanded="true" />
-            <element signature="e#2639#2640#0" expanded="true" />
+            <element signature="e#2266#2557#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2720#2721#0" expanded="true" />
+            <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-            <element signature="e#8320#8328#0" expanded="true" />
-            <element signature="e#11699#11707#0" expanded="true" />
-            <element signature="e#15971#15979#0" expanded="true" />
-            <element signature="e#15935#15943#0" expanded="true" />
-            <element signature="e#17795#17803#0" expanded="true" />
-            <element signature="e#15666#15683#0" expanded="true" />
-            <element signature="e#15756#15783#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -758,16 +695,11 @@
           <caret line="140" column="32" selection-start-line="140" selection-start-column="22" selection-end-line="140" selection-end-column="32" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2349#2640#0" expanded="true" />
-            <element signature="e#2639#2640#0" expanded="true" />
+            <element signature="e#2266#2557#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2720#2721#0" expanded="true" />
+            <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-            <element signature="e#8320#8328#0" expanded="true" />
-            <element signature="e#11699#11707#0" expanded="true" />
-            <element signature="e#15971#15979#0" expanded="true" />
-            <element signature="e#15935#15943#0" expanded="true" />
-            <element signature="e#17795#17803#0" expanded="true" />
-            <element signature="e#15666#15683#0" expanded="true" />
-            <element signature="e#15756#15783#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -881,16 +813,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2970">
-          <caret line="198" column="59" lean-forward="true" selection-start-line="198" selection-start-column="59" selection-end-line="198" selection-end-column="59" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="864">
@@ -907,20 +829,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="739">
-          <caret line="311" column="25" lean-forward="true" selection-start-line="311" selection-start-column="25" selection-end-line="311" selection-end-column="25" />
+        <state relative-caret-position="4230">
+          <caret line="299" lean-forward="true" selection-start-line="299" selection-end-line="299" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2349#2640#0" expanded="true" />
-            <element signature="e#2639#2640#0" expanded="true" />
+            <element signature="e#2266#2557#0" expanded="true" />
+            <element signature="e#2556#2557#0" expanded="true" />
+            <element signature="e#2720#2721#0" expanded="true" />
+            <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-            <element signature="e#8320#8328#0" expanded="true" />
-            <element signature="e#11699#11707#0" expanded="true" />
-            <element signature="e#15971#15979#0" expanded="true" />
-            <element signature="e#15935#15943#0" expanded="true" />
-            <element signature="e#17795#17803#0" expanded="true" />
-            <element signature="e#15666#15683#0" expanded="true" />
-            <element signature="e#15756#15783#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="365">
+          <caret line="200" column="63" selection-start-line="200" selection-start-column="63" selection-end-line="200" selection-end-column="63" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

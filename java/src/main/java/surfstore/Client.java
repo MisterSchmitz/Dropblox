@@ -3,7 +3,6 @@ package surfstore;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public final class Client {
     private final ManagedChannel blockChannel;
     private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
-    private final ConfigReader config;
+//    private final ConfigReader config;
 
     private final int BLOCKSIZE = 4096;
 
@@ -48,32 +47,12 @@ public final class Client {
                 .usePlaintext(true).build();
         this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
 
-        this.config = config;
+//        this.config = config;
     }
 
     public void shutdown() throws InterruptedException {
         metadataChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
         blockChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-    }
-
-    private void ensure(boolean b) {
-        if (b == false) {
-            throw new RuntimeException("Assertion failed!");
-        }
-    }
-
-    private static Block stringToBlock(String s) {
-        Block.Builder builder = Block.newBuilder();
-
-        try {
-            builder.setData(ByteString.copyFrom(s, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-
-        builder.setHash(HashUtils.sha256(s));
-
-        return builder.build(); // turns the Builder into a Block
     }
 
     private static Block bytesToBlock(byte[] b) {
@@ -143,7 +122,7 @@ public final class Client {
 
         // Create a set of Blocks
         Block[] blockList = new Block[numBlocks];
-        ArrayList<String> hashList = new ArrayList<String>();
+        ArrayList<String> hashList = new ArrayList<>();
         // First 4KB Blocks
         int i;
         for (i=0; i<numFullBlocks; i++) {
@@ -198,13 +177,9 @@ public final class Client {
         while (modifyResult.getNumber() != 0) {
             System.err.println("Attempting upload again.");
 
-            // TODO: BUG: Version is incorrectly updating even if file doesn't change
-
             int currentVersion = modifyResponse.getCurrentVersion();
             ProtocolStringList missingBlocks = modifyResponse.getMissingBlocksList();
-            int missingBlockCount = modifyResponse.getMissingBlocksCount();
 
-            // TODO: If version number is too old, update version and try again
             if (modifyResult.getNumber() == 1)  // OLD_VERSION
                 modifyReqBuilder.setVersion(currentVersion+1);
 
@@ -212,7 +187,6 @@ public final class Client {
             {
                 // Upload the missing Blocks to BlockStore
                 System.err.println("Uploading missing blocks...");
-                // TODO: Somehow make this atomic across clients
                 for (Block block : blockList) {
                     if (missingBlocks.contains(block.getHash())) {
                         Block.Builder storeBlockReqBuilder = Block.newBuilder();
@@ -224,8 +198,10 @@ public final class Client {
                 modifyReqBuilder.setVersion(currentVersion+1);
             }
 
-            if (modifyResult.getNumber() == 3)  // NOT_LEADER TODO: WHAT HAPPENS?
-                break;
+            if (modifyResult.getNumber() == 3) {  // NOT_LEADER
+                System.err.println("Upload failed. Non-leader.");
+                return;
+            }
 
             // Send new modify request
             modifyReqBuilder.setFilename(filename);
@@ -233,10 +209,6 @@ public final class Client {
             modifyReqBuilder.addAllBlocklist(hashList);
             modifyResponse = metadataStub.modifyFile(modifyReqBuilder.build());
             modifyResult = modifyResponse.getResult();
-
-//            System.out.println("modifyResult: " + modifyResult.getValueDescriptor());
-//            System.out.println("currentVersion: " + currentVersion);
-//            System.out.println("missingBlockCount: " + missingBlockCount);
         }
 
         System.out.println("OK");
@@ -268,14 +240,14 @@ public final class Client {
         }
 
         // Create a set of Blocks
-        HashMap<String, ByteString> localFileHashMap = new HashMap<String, ByteString>();
-        ArrayList<String> localFileHashList = new ArrayList<String>();
+        HashMap<String, ByteString> localFileHashMap = new HashMap<>();
+        ArrayList<String> localFileHashList = new ArrayList<>();
 
         // Check for existing blocks in ALL FILES in download directory
         File folder = new File(pathToStoreDownload);
         File[] listOfFiles = folder.listFiles();
 
-        for (File file : listOfFiles) {
+        for (File file : listOfFiles)
             if (file.isFile()) {
                 byte[] fileContents;
                 try {
@@ -289,21 +261,20 @@ public final class Client {
 
                 // First 4KB Blocks
                 int i;
-                for (i=0; i<numFullBlocks; i++) {
-                    byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, (i+1)*BLOCKSIZE);
+                for (i = 0; i < numFullBlocks; i++) {
+                    byte[] a = Arrays.copyOfRange(fileContents, i * BLOCKSIZE, (i + 1) * BLOCKSIZE);
                     Block b = bytesToBlock(a);
                     localFileHashMap.put(b.getHash(), b.getData());
                     localFileHashList.add(b.getHash());
                 }
                 // Last Small Block
-                byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
+                byte[] a = Arrays.copyOfRange(fileContents, i * BLOCKSIZE, numBytes);
                 if (a.length > 0) {
                     Block b = bytesToBlock(a);
                     localFileHashMap.put(b.getHash(), b.getData());
                     localFileHashList.add(b.getHash());
                 }
             }
-        }
 
         byte[] allData = new byte[0];
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
