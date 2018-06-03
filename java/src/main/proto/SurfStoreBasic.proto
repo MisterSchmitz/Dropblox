@@ -11,7 +11,7 @@ service MetadataStore {
     // The client only needs to supply the "filename" argument of FileInfo.
     // The server only needs to fill the "version" and "blocklist" fields.
     // If the file does not exist, "version" should be set to 0.
-	//
+    //
     // This command should return an error if it is called on a server
     // that is not the leader
     rpc ReadFile (FileInfo) returns (FileInfo) {}
@@ -60,12 +60,12 @@ service MetadataStore {
     // (should always work, even if the node is crashed)
     rpc IsCrashed(Empty) returns (SimpleAnswer) {}
 
-	// Returns the current committed version of the requested file
-	// The argument's FileInfo only has the "filename" field defined
-	// The FileInfo returns the filename and version fields only
-	// This should return a result even if the follower is in a
-	//   crashed state
-	rpc GetVersion(FileInfo) returns (FileInfo) {}
+    // Returns the current committed version of the requested file
+    // The argument's FileInfo only has the "filename" field defined
+    // The FileInfo returns the filename and version fields only
+    // This should return a result even if the follower is in a
+    //   crashed state
+    rpc GetVersion(FileInfo) returns (FileInfo) {}
 
     // YOU CAN INSERT ADDITIONAL RPC CALLS HERE TO IMPLEMENT PART 2
     // OF THE PROJECT, BUT PLEASE DON'T MODIFY THE ABOVE CALLS/ARGUMENTS

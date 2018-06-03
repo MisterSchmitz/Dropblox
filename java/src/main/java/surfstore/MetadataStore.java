@@ -37,11 +37,11 @@ public final class MetadataStore {
     private boolean isCrashed;
 
     public MetadataStore(ConfigReader config) {
-    	this.config = config;
+        this.config = config;
         this.isCrashed = false;
-	}
+    }
 
-	private void start(int port, int numThreads) throws IOException {
+    private void start(int port, int numThreads) throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new MetadataStoreImpl(this.config))
                 .executor(Executors.newFixedThreadPool(numThreads))
@@ -108,12 +108,6 @@ public final class MetadataStore {
 
         if (c_args.getInt("number") > config.getNumMetadataServers())
             throw new RuntimeException(String.format("metadata%d not in config file", c_args.getInt("number")));
-
-//        final ManagedChannel blockChannel;
-//        final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
-//        blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
-//                .usePlaintext(true).build();
-//        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
 
         final MetadataStore server = new MetadataStore(config);
         server.start(
@@ -268,11 +262,12 @@ public final class MetadataStore {
                         logAppendBuilder.setFilename(filename);
                         logAppendBuilder.setVersion(version);
                         logAppendBuilder.addAllBlocklist(newBlockList);
+                        FileInfo logAppendRequest = logAppendBuilder.build();
 
                         // Get 'consensus' from followers, by sending log update
                         boolean consensusReached = false;
                         while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer response = metadatastub.log(logAppendBuilder.build());
+                            SimpleAnswer response = metadatastub.log(logAppendRequest);
                             if (response.getAnswer())
                                 consensusReached = true;
                         }
@@ -284,7 +279,8 @@ public final class MetadataStore {
 
                         // Send commit message to followers
                         for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer commitResponse = metadatastub.commit(logAppendBuilder.build());
+                            System.err.println("Sending commit message to server");
+                            SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
                         }
                     }
 
@@ -350,7 +346,7 @@ public final class MetadataStore {
 
         @Override
         public void log(surfstore.SurfStoreBasic.FileInfo request,
-                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+                        io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
             String fname = request.getFilename();
             int fversion = request.getVersion();
 //            ProtocolStringList fblocklist = request.getBlocklistList();
