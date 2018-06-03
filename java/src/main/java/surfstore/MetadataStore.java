@@ -36,9 +36,6 @@ public final class MetadataStore {
     private boolean isLeader;
     private boolean isCrashed;
 
-    private final ArrayList<ManagedChannel> metadataChannels = new ArrayList<>();
-    private final ArrayList<MetadataStoreGrpc.MetadataStoreBlockingStub> metadataStubs = new ArrayList<>();
-
     public MetadataStore(ConfigReader config) {
         this.config = config;
         this.isCrashed = false;
@@ -46,45 +43,10 @@ public final class MetadataStore {
 
     private void start(int port, int numThreads) throws IOException {
         server = ServerBuilder.forPort(port)
-                .addService(new MetadataStoreImpl(this.config))
+                .addService(new MetadataStoreImpl(this.config, port))
                 .executor(Executors.newFixedThreadPool(numThreads))
                 .build()
                 .start();
-
-        // Figure out which server this is, and whether it is leader
-        for (int i=1; i<=config.getNumMetadataServers(); i++) {
-            int currPort = config.metadataPorts.get(i);
-            if (currPort == server.getPort()) {
-                System.err.println("serverId: " + i);
-                if (config.getLeaderNum() == i) {
-                    this.isLeader = true;
-                    System.err.println("This server is leader.");
-                } else this.isLeader = false;
-                break;
-            }
-        }
-
-        // If leader, add followers
-        if(isLeader) {
-            int followerCount = 0;
-            for (int i = 1; i <= config.getNumMetadataServers(); i++) {
-                int currPort = config.metadataPorts.get(i);
-                if (currPort == server.getPort()) continue;
-                ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
-                        config.getMetadataPort(i)).usePlaintext(true).build();
-                this.metadataChannels.add(metadataChannel);
-                this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
-                followerCount += 1;
-            }
-            System.err.println("Added "+followerCount+" servers as followers");
-        }
-        else { // Add leader
-            System.err.println("Adding server " + config.getLeaderNum() + " as leader");
-            ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
-                    config.getMetadataPort(config.getLeaderNum())).usePlaintext(true).build();
-            this.metadataChannels.add(metadataChannel);
-            this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
-        }
 
         logger.info("Server started, listening on " + port);
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -148,11 +110,50 @@ public final class MetadataStore {
         private final ManagedChannel blockChannel;
         private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
-        public MetadataStoreImpl(ConfigReader config) {
+        private final ArrayList<ManagedChannel> metadataChannels = new ArrayList<>();
+        private final ArrayList<MetadataStoreGrpc.MetadataStoreBlockingStub> metadataStubs = new ArrayList<>();
+
+        public MetadataStoreImpl(ConfigReader config, int port) {
             this.config = config;
             this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
                     .usePlaintext(true).build();
             this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
+            // Figure out which server this is, and whether it is leader
+            for (int i=1; i<=config.getNumMetadataServers(); i++) {
+                int currPort = config.metadataPorts.get(i);
+                if (currPort == port) {
+                    System.err.println("serverId: " + i);
+                    if (config.getLeaderNum() == i) {
+                        isLeader = true;
+                        System.err.println("This server is leader.");
+                    } else isLeader = false;
+                    break;
+                }
+            }
+
+            // If leader, add followers
+            if(isLeader) {
+                int followerCount = 0;
+                for (int i = 1; i <= config.getNumMetadataServers(); i++) {
+                    int currPort = config.metadataPorts.get(i);
+                    if (currPort == port) continue;
+                    ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                            config.getMetadataPort(i)).usePlaintext(true).build();
+                    this.metadataChannels.add(metadataChannel);
+                    this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+                    followerCount += 1;
+                }
+                System.err.println("Added "+followerCount+" servers as followers");
+            }
+            else { // Add leader
+                System.err.println("Adding server " + config.getLeaderNum() + " as leader");
+                ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                        config.getMetadataPort(config.getLeaderNum())).usePlaintext(true).build();
+                this.metadataChannels.add(metadataChannel);
+                this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+            }
+
         }
 
         @Override
@@ -241,8 +242,6 @@ public final class MetadataStore {
 
                 System.err.println("Attempting to write file" + filename + "Version: " + version);
 
-                responseBuilder.setResultValue(0);
-
                 if (!this.version.containsKey(filename)) this.version.put(filename, 0);
 
                 responseBuilder.setCurrentVersion(this.version.get(filename));
@@ -262,7 +261,6 @@ public final class MetadataStore {
                         responseBuilder.setResultValue(2); // MISSING_BLOCKS
                     else {
                         // TODO: Make this entire operation atomic
-
                         // Prepare log entry
                         FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
                         logAppendBuilder.setFilename(filename);
@@ -272,22 +270,30 @@ public final class MetadataStore {
 
                         // Get 'consensus' from followers, by sending log update
                         boolean consensusReached = false;
-                        while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer response = metadatastub.log(logAppendRequest);
-                            System.err.println("Log received by follower: "+response.getAnswer());
-                            if (response.getAnswer())
-                                consensusReached = true;
+                        if (metadataStubs.size() > 0) {
+                            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                                SimpleAnswer response = metadatastub.log(logAppendRequest);
+                                System.err.println("Log received by follower: " + response.getAnswer());
+                                if (response.getAnswer())
+                                    consensusReached = true;
+                            }
+                        } else {
+                            consensusReached = true;
                         }
 
-                        // Commit transaction in own state
-                        this.version.put(filename, version);
-                        this.hashlist.put(filename, newBlockList);
-                        logger.info("Writing file " + filename + "Version: " + version);
+                        if (consensusReached) {
+                            // Commit transaction in own state
+                            this.version.put(filename, version);
+                            this.hashlist.put(filename, newBlockList);
+                            logger.info("Writing file " + filename + "Version: " + version);
 
-                        // Send commit message to followers
-                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                            System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                            // Send commit message to followers
+                            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                                SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
+                                System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                            }
+
+                            responseBuilder.setResultValue(0);
                         }
                     }
 
@@ -336,9 +342,6 @@ public final class MetadataStore {
                     responseBuilder.setResultValue(1); // OLD_VERSION
                     responseBuilder.setCurrentVersion(this.version.get(filename));
                 } else {
-                    responseBuilder.setResultValue(0);
-                    responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
-
                     ArrayList<String> newBlockList = new ArrayList<>();
                     newBlockList.add("0");
                     this.hashlist.put(filename, newBlockList);
@@ -352,24 +355,33 @@ public final class MetadataStore {
 
                     // Get 'consensus' from followers, by sending log update
                     boolean consensusReached = false;
-                    while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                        SimpleAnswer response = metadatastub.log(logAppendRequest);
-                        System.err.println("Log received by follower: "+response.getAnswer());
-                        if (response.getAnswer())
-                            consensusReached = true;
+                    if (metadataStubs.size() > 0) {
+                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                            SimpleAnswer response = metadatastub.log(logAppendRequest);
+                            System.err.println("Log received by follower: " + response.getAnswer());
+                            if (response.getAnswer())
+                                consensusReached = true;
+                        }
+                    } else {
+                        consensusReached = true;
                     }
 
-                    // Commit transaction in own state
-                    this.version.put(filename, version);
-                    this.hashlist.put(filename, newBlockList);
-                    logger.info("Deleting file " + filename + "Version: " + version);
+                    if (consensusReached) {
+                        // Commit transaction in own state
+                        this.version.put(filename, version);
+                        this.hashlist.put(filename, newBlockList);
+                        logger.info("Deleting file " + filename + "Version: " + version);
 
-                    // Send commit message to followers
-                    for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                        SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                        System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                        // Send commit message to followers
+                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                            SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
+                            System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                        }
+
+                        // Prepare client response
+                        responseBuilder.setResultValue(0);
+                        responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
                     }
-
                 }
             }
 
@@ -448,6 +460,8 @@ public final class MetadataStore {
             Empty response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
+
+            logger.info("Server crashed");
         }
 
         /**
@@ -479,6 +493,8 @@ public final class MetadataStore {
             Empty response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
+
+            logger.info("Server restored");
         }
 
         /**
@@ -522,12 +538,10 @@ public final class MetadataStore {
             if (!version.containsKey(filename)) {
                 v=0;
                 logger.info("File: " + filename + " Not found.");
-                System.out.println("Not Found");
             }
             else {
                 v = version.get(filename);
                 logger.info("File: " + filename + " Version: " + v);
-                System.out.println(v);
             }
             responseBuilder.setVersion(v);
 

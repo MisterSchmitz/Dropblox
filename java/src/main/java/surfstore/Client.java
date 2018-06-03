@@ -20,6 +20,7 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import sun.java2d.pipe.SpanShapeRenderer;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.FileInfo;
@@ -152,7 +153,6 @@ public final class Client {
         // Last Small Block
         byte[] a = Arrays.copyOfRange(fileContents, i*BLOCKSIZE, numBytes);
         if (a.length > 0) {
-//            System.out.println("creating small block");
             Block b = bytesToBlock(a);
             blockList[i] = b;
             hashList.add(b.getHash());
@@ -368,8 +368,8 @@ public final class Client {
 
         FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
-//        FileInfo readResponse = metadataStub.readFile(readRequest);
-//        int fileVersion = readResponse;
+        FileInfo response = metadataStub.getVersion(readRequest);
+        System.out.println(response.getVersion());
 
         for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
             int fversion = metadataStub.getVersion(readRequest).getVersion();
