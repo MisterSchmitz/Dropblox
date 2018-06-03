@@ -1,5 +1,8 @@
 NEXT STEPS:
 * Test ModifyFile consensus protocol
+** Not sending commit to all servers
+** Not committing changes even on servers that it calls commit on.
+
 * Implement DeleteFile consensus protocol
 
 LEADER/FOLLOWER

@@ -34,9 +34,12 @@ public final class Client {
     private final ManagedChannel blockChannel;
     private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
-//    private final ConfigReader config;
+    private final ConfigReader config;
 
     private final int BLOCKSIZE = 4096;
+
+    private final ArrayList<ManagedChannel> metadataChannels = new ArrayList<>();
+    private final ArrayList<MetadataStoreGrpc.MetadataStoreBlockingStub> metadataStubs = new ArrayList<>();
 
     public Client(ConfigReader config) {
         this.metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getMetadataPort(config.getLeaderNum()))
@@ -47,7 +50,16 @@ public final class Client {
                 .usePlaintext(true).build();
         this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
 
-//        this.config = config;
+        this.config = config;
+
+        // Get all metadataservers: Mainly for testing
+        for (int i = 1; i <= config.getNumMetadataServers(); i++) {
+            int currPort = config.metadataPorts.get(i);
+            ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                    config.getMetadataPort(i)).usePlaintext(true).build();
+            this.metadataChannels.add(metadataChannel);
+            this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+        }
     }
 
     public void shutdown() throws InterruptedException {
@@ -88,6 +100,12 @@ public final class Client {
         }
         if(operation.equals("getversion")) {
             getVersion(filename);
+        }
+        if(operation.equals("crash")) {
+            crashServer();
+        }
+        if(operation.equals("restore")) {
+            crashServer();
         }
 
     }
@@ -346,17 +364,30 @@ public final class Client {
 
 
     private void getVersion(String filename) {
-        System.err.println("Getting version of file " + filename);
+        System.err.println("Getting versions of file " + filename);
 
-        // Check if file exists in Metadatastore, and get Version
         FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
-        FileInfo readResponse = metadataStub.readFile(readRequest);
-        int fileVersion = readResponse.getVersion();
+//        FileInfo readResponse = metadataStub.readFile(readRequest);
+//        int fileVersion = readResponse;
 
-        System.out.println(fileVersion);
+        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
+            int fversion = metadataStub.getVersion(readRequest).getVersion();
+            System.out.print(fversion + " ");
+        }
     }
 
+    private void crashServer() {
+        int serverId = 3;
+        System.err.println("Crashing server " + serverId);
+        metadataStubs.get(serverId).crash(Empty.newBuilder().build());
+    }
+
+    private void restoreServer() {
+        int serverId = 3;
+        System.err.println("Restoring server " + serverId);
+        metadataStubs.get(serverId).restore(Empty.newBuilder().build());
+    }
 
     private static Namespace parseArgs(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("Client").build()

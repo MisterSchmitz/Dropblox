@@ -33,12 +33,9 @@ public final class MetadataStore {
 
     private Server server;
     private ConfigReader config;
-    private boolean isLeader;
-    private boolean isCrashed;
 
     public MetadataStore(ConfigReader config) {
     	this.config = config;
-        this.isCrashed = false;
 	}
 
 	private void start(int port, int numThreads) throws IOException {
@@ -47,19 +44,6 @@ public final class MetadataStore {
                 .executor(Executors.newFixedThreadPool(numThreads))
                 .build()
                 .start();
-
-        // Figure out which server this is, and whether it is leader
-        for (int i=1; i<=config.getNumMetadataServers(); i++) {
-            int currPort = config.metadataPorts.get(i);
-            if (currPort == server.getPort()) {
-                System.err.println("serverId: " + i);
-                if (config.getLeaderNum() == i) {
-                    this.isLeader = true;
-                    System.err.println("This server is leader.");
-                } else this.isLeader = false;
-                break;
-            }
-        }
 
         logger.info("Server started, listening on " + port);
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -109,12 +93,6 @@ public final class MetadataStore {
         if (c_args.getInt("number") > config.getNumMetadataServers())
             throw new RuntimeException(String.format("metadata%d not in config file", c_args.getInt("number")));
 
-//        final ManagedChannel blockChannel;
-//        final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
-//        blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
-//                .usePlaintext(true).build();
-//        blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
-
         final MetadataStore server = new MetadataStore(config);
         server.start(
                 config.getMetadataPort(c_args.getInt("number")),
@@ -125,6 +103,9 @@ public final class MetadataStore {
     class MetadataStoreImpl extends MetadataStoreGrpc.MetadataStoreImplBase {
 
         protected ConfigReader config;
+        private boolean isLeader;
+        private boolean isCrashed;
+        public int serverId;
 
         private final ManagedChannel blockChannel;
         private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
@@ -134,9 +115,25 @@ public final class MetadataStore {
 
         public MetadataStoreImpl(ConfigReader config) {
             this.config = config;
+            this.isCrashed = false;
+
             this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
                     .usePlaintext(true).build();
             this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
+            // Figure out which server this is, and whether it is leader
+            for (int i=1; i<=config.getNumMetadataServers(); i++) {
+                int currPort = config.metadataPorts.get(i);
+                if (currPort == server.getPort()) {
+                    this.serverId = i;
+                    System.err.println("serverId: " + i);
+                    if (config.getLeaderNum() == i) {
+                        this.isLeader = true;
+                        System.err.println("This server is leader.");
+                    } else this.isLeader = false;
+                    break;
+                }
+            }
 
             // If leader, add followers
             if(isLeader) for (int i = 1; i <= config.getNumMetadataServers(); i++) {
@@ -146,12 +143,14 @@ public final class MetadataStore {
                         config.getMetadataPort(i)).usePlaintext(true).build();
                 this.metadataChannels.add(metadataChannel);
                 this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+                System.err.println("Added Follower server " + i);
             }
             else { // Add leader
                 ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
                         config.getMetadataPort(config.getLeaderNum())).usePlaintext(true).build();
                 this.metadataChannels.add(metadataChannel);
                 this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+                System.err.println("Added Leader server " + config.getLeaderNum());
             }
         }
 
@@ -268,11 +267,12 @@ public final class MetadataStore {
                         logAppendBuilder.setFilename(filename);
                         logAppendBuilder.setVersion(version);
                         logAppendBuilder.addAllBlocklist(newBlockList);
+                        FileInfo logAppendRequest = logAppendBuilder.build();
 
                         // Get 'consensus' from followers, by sending log update
                         boolean consensusReached = false;
                         while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer response = metadatastub.log(logAppendBuilder.build());
+                            SimpleAnswer response = metadatastub.log(logAppendRequest);
                             if (response.getAnswer())
                                 consensusReached = true;
                         }
@@ -284,7 +284,8 @@ public final class MetadataStore {
 
                         // Send commit message to followers
                         for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer commitResponse = metadatastub.commit(logAppendBuilder.build());
+                            System.err.println("Sending commit message to server");
+                            SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
                         }
                     }
 

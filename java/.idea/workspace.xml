@@ -12,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="365">
-              <caret line="200" column="63" selection-start-line="200" selection-start-column="63" selection-end-line="200" selection-end-column="63" />
+            <state relative-caret-position="302">
+              <caret line="46" column="30" lean-forward="true" selection-start-line="46" selection-start-column="30" selection-end-line="46" selection-end-column="30" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -24,13 +24,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4230">
-              <caret line="299" lean-forward="true" selection-start-line="299" selection-end-line="299" />
+            <state relative-caret-position="384">
+              <caret line="135" column="13" selection-start-line="135" selection-start-column="13" selection-end-line="135" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#1195#1196#0" expanded="true" />
+                <element signature="e#1225#1226#0" expanded="true" />
                 <element signature="e#2266#2557#0" expanded="true" />
                 <element signature="e#2556#2557#0" expanded="true" />
                 <element signature="e#2720#2721#0" expanded="true" />
@@ -112,8 +114,8 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java" />
         <option value="$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto" />
-        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/Client.java" />
+        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
       </list>
     </option>
   </component>
@@ -195,7 +197,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Client download big">
+  <component name="RunManager" selected="Application.DIST Client getversion simple">
     <configuration name="BlockStore" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.BlockStore" />
       <module name="surfstore" />
@@ -262,6 +264,12 @@
       <option name="PROGRAM_PARAMETERS" value=" ../configs/configDistributed.txt" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
+    <configuration name="DIST Client crashServer" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt crash simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
     <configuration name="DIST Client delete simple" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
@@ -272,6 +280,18 @@
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
       <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt download simple.txt ../downloads" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="DIST Client getversion simple" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt getversion simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="DIST Client restoreServer" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt restore simple.txt" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
     <configuration name="DIST Client upload simple" type="Application" factoryName="Application">
@@ -400,6 +420,9 @@
       <item itemvalue="Application.DIST MetadataStore 2" />
       <item itemvalue="Application.DIST MetadataStore 3" />
       <item itemvalue="Application.DIST Client upload simple" />
+      <item itemvalue="Application.DIST Client getversion simple" />
+      <item itemvalue="Application.DIST Client crashServer" />
+      <item itemvalue="Application.DIST Client restoreServer" />
       <item itemvalue="Application.DIST Client download simple" />
       <item itemvalue="Application.DIST Client delete simple" />
       <item itemvalue="Application.Client upload simple" />
@@ -434,12 +457,12 @@
       <workItem from="1527707345092" duration="21515000" />
       <workItem from="1527848800098" duration="7389000" />
       <workItem from="1527904603070" duration="35573000" />
-      <workItem from="1527982564262" duration="16035000" />
+      <workItem from="1527982564262" duration="18553000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="90202000" />
+    <option name="totallyTimeSpent" value="92720000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1964" y="-11" width="1877" height="1092" extended-state="6" />
@@ -448,14 +471,14 @@
       <window_info anchor="bottom" id="TODO" order="7" />
       <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.4992" weight="0.32924336" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3248" side_tool="true" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.32586667" side_tool="true" visible="true" weight="0.28732106" />
       <window_info anchor="right" id="Maven Projects" order="4" />
       <window_info anchor="bottom" id="Version Control" order="10" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Run" order="3" sideWeight="0.6752" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.67413336" visible="true" weight="0.28732106" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Designer" order="1" />
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49919742" visible="true" weight="0.17226666" />
-      <window_info anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
+      <window_info active="true" anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="4" sideWeight="0.49973333" weight="0.3997955" />
@@ -477,7 +500,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="10" />
+      <option name="time" value="11" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -507,6 +530,8 @@
           <caret line="34" column="27" lean-forward="true" selection-start-line="34" selection-start-column="27" selection-end-line="34" selection-end-column="27" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1195#1196#0" expanded="true" />
+            <element signature="e#1225#1226#0" expanded="true" />
             <element signature="e#2266#2557#0" expanded="true" />
             <element signature="e#2556#2557#0" expanded="true" />
             <element signature="e#2720#2721#0" expanded="true" />
@@ -562,6 +587,8 @@
           <caret line="221" column="60" lean-forward="true" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1195#1196#0" expanded="true" />
+            <element signature="e#1225#1226#0" expanded="true" />
             <element signature="e#2266#2557#0" expanded="true" />
             <element signature="e#2556#2557#0" expanded="true" />
             <element signature="e#2720#2721#0" expanded="true" />
@@ -624,6 +651,8 @@
           <caret line="46" column="49" selection-start-line="46" selection-start-column="32" selection-end-line="46" selection-end-column="49" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1195#1196#0" expanded="true" />
+            <element signature="e#1225#1226#0" expanded="true" />
             <element signature="e#2266#2557#0" expanded="true" />
             <element signature="e#2556#2557#0" expanded="true" />
             <element signature="e#2720#2721#0" expanded="true" />
@@ -695,6 +724,8 @@
           <caret line="140" column="32" selection-start-line="140" selection-start-column="22" selection-end-line="140" selection-end-column="32" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1195#1196#0" expanded="true" />
+            <element signature="e#1225#1226#0" expanded="true" />
             <element signature="e#2266#2557#0" expanded="true" />
             <element signature="e#2556#2557#0" expanded="true" />
             <element signature="e#2720#2721#0" expanded="true" />
@@ -827,27 +858,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4230">
-          <caret line="299" lean-forward="true" selection-start-line="299" selection-end-line="299" />
+        <state relative-caret-position="302">
+          <caret line="46" column="30" lean-forward="true" selection-start-line="46" selection-start-column="30" selection-end-line="46" selection-end-column="30" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="384">
+          <caret line="135" column="13" selection-start-line="135" selection-start-column="13" selection-end-line="135" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1195#1196#0" expanded="true" />
+            <element signature="e#1225#1226#0" expanded="true" />
             <element signature="e#2266#2557#0" expanded="true" />
             <element signature="e#2556#2557#0" expanded="true" />
             <element signature="e#2720#2721#0" expanded="true" />
             <element signature="e#2773#2774#0" expanded="true" />
             <element signature="docComment;method#modifyFile#0;class#MetadataStoreImpl#0;class#MetadataStore#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
-          <caret line="200" column="63" selection-start-line="200" selection-start-column="63" selection-end-line="200" selection-end-column="63" />
-          <folding>
-            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
