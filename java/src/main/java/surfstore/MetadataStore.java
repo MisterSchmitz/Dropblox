@@ -274,7 +274,7 @@ public final class MetadataStore {
                         boolean consensusReached = false;
                         while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
                             SimpleAnswer response = metadatastub.log(logAppendRequest);
-                            System.out.println("Log received by follower: "+response.getAnswer());
+                            System.err.println("Log received by follower: "+response.getAnswer());
                             if (response.getAnswer())
                                 consensusReached = true;
                         }
@@ -287,7 +287,7 @@ public final class MetadataStore {
                         // Send commit message to followers
                         for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
                             SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                            System.out.println("Commit message received by follower: " + commitResponse.getAnswer());
+                            System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
                         }
                     }
 
@@ -338,11 +338,38 @@ public final class MetadataStore {
                 } else {
                     responseBuilder.setResultValue(0);
                     responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
-                    this.version.put(filename, version);
+
                     ArrayList<String> newBlockList = new ArrayList<>();
                     newBlockList.add("0");
                     this.hashlist.put(filename, newBlockList);
-                    logger.info("Deleted file " + filename + "Version: " + version);
+
+                    // Prepare log entry
+                    FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
+                    logAppendBuilder.setFilename(filename);
+                    logAppendBuilder.setVersion(version);
+                    logAppendBuilder.addAllBlocklist(newBlockList);
+                    FileInfo logAppendRequest = logAppendBuilder.build();
+
+                    // Get 'consensus' from followers, by sending log update
+                    boolean consensusReached = false;
+                    while(!consensusReached) for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                        SimpleAnswer response = metadatastub.log(logAppendRequest);
+                        System.err.println("Log received by follower: "+response.getAnswer());
+                        if (response.getAnswer())
+                            consensusReached = true;
+                    }
+
+                    // Commit transaction in own state
+                    this.version.put(filename, version);
+                    this.hashlist.put(filename, newBlockList);
+                    logger.info("Deleting file " + filename + "Version: " + version);
+
+                    // Send commit message to followers
+                    for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                        SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
+                        System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                    }
+
                 }
             }
 
