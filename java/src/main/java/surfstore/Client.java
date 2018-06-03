@@ -105,7 +105,7 @@ public final class Client {
             crashServer();
         }
         if(operation.equals("restore")) {
-            crashServer();
+            restoreServer();
         }
 
     }
@@ -380,13 +380,13 @@ public final class Client {
     private void crashServer() {
         int serverId = 3;
         System.err.println("Crashing server " + serverId);
-        metadataStubs.get(serverId).crash(Empty.newBuilder().build());
+        metadataStubs.get(serverId-1).crash(Empty.newBuilder().build());
     }
 
     private void restoreServer() {
         int serverId = 3;
         System.err.println("Restoring server " + serverId);
-        metadataStubs.get(serverId).restore(Empty.newBuilder().build());
+        metadataStubs.get(serverId-1).restore(Empty.newBuilder().build());
     }
 
     private static Namespace parseArgs(String[] args) {

@@ -12,10 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="484">
+              <caret line="107" column="19" selection-start-line="107" selection-start-column="19" selection-end-line="107" selection-end-column="19" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -26,28 +27,32 @@
       <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="240">
+              <caret line="154" column="74" selection-start-line="154" selection-start-column="74" selection-end-line="154" selection-end-column="74" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#2266#2557#0" expanded="true" />
-                <element signature="e#2556#2557#0" expanded="true" />
-                <element signature="e#2720#2721#0" expanded="true" />
-                <element signature="e#2773#2774#0" expanded="true" />
+                <element signature="e#3578#3869#0" expanded="true" />
+                <element signature="e#3868#3869#0" expanded="true" />
+                <element signature="e#3860#3861#0" expanded="true" />
+                <element signature="e#3913#3914#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SurfStoreBasic.proto" pinned="false" current-in-tab="true">
+      <file leaf-file-name="SurfStoreBasic.proto" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
-          <provider selected="true" editor-type-id="text-editor" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="35" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="35" />
+            </state>
+          </provider>
         </entry>
       </file>
       <file leaf-file-name="BlockStore.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="67" selection-start-line="22" selection-start-column="67" selection-end-line="22" selection-end-column="67" />
+            <state>
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -104,8 +109,8 @@
         <option value="$PROJECT_DIR$/src/main/java/surfstore/HashUtils.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java" />
-        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
         <option value="$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto" />
+        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/Client.java" />
       </list>
     </option>
@@ -279,6 +284,12 @@
       <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt download simple.txt ../downloads" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
+    <configuration name="DIST Client getversion big" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt getversion big.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
     <configuration name="DIST Client getversion simple" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
@@ -289,6 +300,12 @@
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
       <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt restore simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="DIST Client upload big" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt upload big.txt" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
     <configuration name="DIST Client upload simple" type="Application" factoryName="Application">
@@ -417,11 +434,13 @@
       <item itemvalue="Application.DIST MetadataStore 2" />
       <item itemvalue="Application.DIST MetadataStore 3" />
       <item itemvalue="Application.DIST Client upload simple" />
+      <item itemvalue="Application.DIST Client upload big" />
       <item itemvalue="Application.DIST Client download simple" />
       <item itemvalue="Application.DIST Client delete simple" />
+      <item itemvalue="Application.DIST Client getversion simple" />
+      <item itemvalue="Application.DIST Client getversion big" />
       <item itemvalue="Application.DIST Client crashServer" />
       <item itemvalue="Application.DIST Client restoreServer" />
-      <item itemvalue="Application.DIST Client getversion simple" />
       <item itemvalue="Application.Client getversion simple" />
       <item itemvalue="Application.Client upload simple" />
       <item itemvalue="Application.Client download simple" />
@@ -460,23 +479,23 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="90250000" />
+    <option name="totallyTimeSpent" value="92946000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1964" y="-11" width="1877" height="1092" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="7" />
-      <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.4992" weight="0.32924336" />
+      <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.49866667" weight="0.32924336" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.32586667" side_tool="true" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3264" side_tool="true" visible="true" weight="0.28732106" />
       <window_info anchor="right" id="Maven Projects" order="4" />
       <window_info anchor="bottom" id="Version Control" order="10" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.67413336" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.6736" visible="true" weight="0.28732106" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Designer" order="1" />
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49919742" visible="true" weight="0.17226666" />
-      <window_info active="true" anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
+      <window_info active="true" anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.32106668" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="4" sideWeight="0.49973333" weight="0.3997955" />
@@ -602,10 +621,10 @@
         <state>
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -643,10 +662,10 @@
           <caret line="34" column="27" lean-forward="true" selection-start-line="34" selection-start-column="27" selection-end-line="34" selection-end-column="27" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -697,10 +716,10 @@
           <caret line="221" column="60" lean-forward="true" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -758,10 +777,10 @@
           <caret line="46" column="49" selection-start-line="46" selection-start-column="32" selection-end-line="46" selection-end-column="49" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -825,10 +844,10 @@
           <caret line="140" column="32" selection-start-line="140" selection-start-column="22" selection-end-line="140" selection-end-column="32" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -929,16 +948,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="67" selection-start-line="22" selection-start-column="67" selection-end-line="22" selection-end-column="67" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="864">
@@ -946,30 +955,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <folding>
             <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2266#2557#0" expanded="true" />
-            <element signature="e#2556#2557#0" expanded="true" />
-            <element signature="e#2720#2721#0" expanded="true" />
-            <element signature="e#2773#2774#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
-      <provider selected="true" editor-type-id="text-editor" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="35" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="154" column="74" selection-start-line="154" selection-start-column="74" selection-end-line="154" selection-end-column="74" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#3578#3869#0" expanded="true" />
+            <element signature="e#3868#3869#0" expanded="true" />
+            <element signature="e#3860#3861#0" expanded="true" />
+            <element signature="e#3913#3914#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="484">
+          <caret line="107" column="19" selection-start-line="107" selection-start-column="19" selection-end-line="107" selection-end-column="19" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
     </entry>
   </component>
 </project>
