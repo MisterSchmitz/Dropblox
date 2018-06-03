@@ -88,7 +88,7 @@
       <find>modi</find>
       <find>MetadataStoreImpl</find>
       <find>configR</find>
-      <find>protected ConfigReader config;</find>
+      <find />
       <find>delete</find>
       <find>.clear</find>
       <find>attempting</find>
@@ -188,7 +188,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Client download big">
+  <component name="RunManager" selected="Application.DIST Client getversion simple">
     <configuration name="BlockStore" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.BlockStore" />
       <module name="surfstore" />
@@ -225,6 +225,12 @@
       <option name="PROGRAM_PARAMETERS" value="../configs/configCentralized.txt download simple.txt ../downloads" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
+    <configuration name="Client getversion simple" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configCentralized.txt getversion simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
     <configuration name="Client upload aeneid" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
@@ -255,6 +261,12 @@
       <option name="PROGRAM_PARAMETERS" value=" ../configs/configDistributed.txt" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
+    <configuration name="DIST Client crashServer" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt crash simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
     <configuration name="DIST Client delete simple" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
@@ -265,6 +277,18 @@
       <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
       <module name="surfstore" />
       <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt download simple.txt ../downloads" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="DIST Client getversion simple" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt getversion simple.txt" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="DIST Client restoreServer" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="surfstore.Client" />
+      <module name="surfstore" />
+      <option name="PROGRAM_PARAMETERS" value="../configs/configDistributed.txt restore simple.txt" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
     <configuration name="DIST Client upload simple" type="Application" factoryName="Application">
@@ -395,6 +419,10 @@
       <item itemvalue="Application.DIST Client upload simple" />
       <item itemvalue="Application.DIST Client download simple" />
       <item itemvalue="Application.DIST Client delete simple" />
+      <item itemvalue="Application.DIST Client crashServer" />
+      <item itemvalue="Application.DIST Client restoreServer" />
+      <item itemvalue="Application.DIST Client getversion simple" />
+      <item itemvalue="Application.Client getversion simple" />
       <item itemvalue="Application.Client upload simple" />
       <item itemvalue="Application.Client download simple" />
       <item itemvalue="Application.Client delete simple" />
