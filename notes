@@ -1,5 +1,45 @@
 NEXT STEPS:
-* Implement GetVersion for Centralized
+* Test ModifyFile consensus protocol
+* Implement DeleteFile consensus protocol
+
+LEADER/FOLLOWER
+
+When a client sends a command to the leader, the leader is going to log that command in its local log, then issue a two-phase commit operation to its followers.
+When a majority of those followers approve of the update, the leader can commit the transaction locally, and then respond back to the client.
+After the leader responds back to the client, it is going to need to tell the followers that the transaction was committed.
+It is fine to immediately call into them with the updated commit index.
+
+Now, what happens if a follower is in a crashed state? 
+The leader should attempt to bring it up to date every 500ms, meaning that every half second the leader should call into the follower with updated information.
+
+TWO-PHASE COMMIT
+* Leader first send log entries to all the followers and receives votes 
+(If a follower put the the log entry into its log, it sends vote "Yes" to leader). 
+After leader gets enough "yes" votes, then it  sends commits to followers. 
+Finally the leader execute the modification of its state machine.
+
+* we need to achieve consensus every time the leader wants to commit anything.
+
+The leader can handle ReadFile requests by itself, and can also properly handle ModifyFile and DeleteFile operations that are not valid. For example, if the client tries a modifyfile operation and there are missing blocks, or if a client tries a modifyfile operation that is the wrong version, then the leader can just reject the request. Only when a request is valid (all blocks are present and the version number is correct) does it need to invoke 2PC on the followers.
+
+
+Testing scenario:
+Start up your servers
+Update a number of files
+We will then “crash” one or more of the followers (but never more than half)
+We’ll then continue to update files
+Your service should continue to work while the followers are crashed, so that as far as the client is concerned, nothing appears to have failed
+During the time that one or more of your followers is crashed, we’ll call the getversion api call from your client to ensure that its state is not being updated. In other words, we’ll ensure that it is falling behind the rest of the system
+We’ll then “uncrash” the follower(s), and wait e.g., 5 seconds. Then we’ll check to make sure that those followers have “caught up” to the rest of the system and have the updated information
+This may happen multiple times.
+
+Metadata store: Part 2
+When one non-leader metadata store is crashed, clients interacting with the leader should continue work correctly.
+The crashed server should not have its metadata updated (in other words, its metadata stays the way it was when the server crashed)
+Once a crashed metadata store is restored, then it should come back up-to-date within 5 seconds.
+(Hint: the leader should try to append entries to the logs every 500 milliseconds)
+
+
 
 DELETE
 *  The version is incremented any time the file is created, modified, or deleted.

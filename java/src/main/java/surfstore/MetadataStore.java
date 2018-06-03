@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -21,6 +22,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.FileInfo;
+import surfstore.SurfStoreBasic.MetaLog;
 import surfstore.SurfStoreBasic.SimpleAnswer;
 import surfstore.SurfStoreBasic.WriteResult;
 
@@ -48,6 +50,7 @@ public final class MetadataStore {
                 .build()
                 .start();
 
+        // Figure out which server this is, and whether it is leader
         for (int i=1; i<=config.getNumMetadataServers(); i++) {
             int currPort = config.metadataPorts.get(i);
             if (currPort == server.getPort()) {
@@ -138,11 +141,36 @@ public final class MetadataStore {
         private final ManagedChannel blockChannel;
         private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
 
+        private final ArrayList<ManagedChannel> metadataChannels;
+        private final ArrayList<MetadataStoreGrpc.MetadataStoreBlockingStub> metadataStubs;
+
         public MetadataStoreImpl(ConfigReader config) {
             this.config = config;
             this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
                     .usePlaintext(true).build();
             this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
+            this.metadataChannels = new ArrayList<ManagedChannel>();
+            this.metadataStubs = new ArrayList<MetadataStoreGrpc.MetadataStoreBlockingStub>();
+
+            // If leader, add followers
+            if(isLeader) {
+                for (int i = 1; i <= config.getNumMetadataServers(); i++) {
+                    int currPort = config.metadataPorts.get(i);
+                    if (currPort == server.getPort()) {
+                        continue;
+                    }
+                    ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                            config.getMetadataPort(i)).usePlaintext(true).build();
+                    this.metadataChannels.add(metadataChannel);
+                    this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+                }
+            } else { // Add leader
+                ManagedChannel metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                        config.getMetadataPort(config.getLeaderNum())).usePlaintext(true).build();
+                this.metadataChannels.add(metadataChannel);
+                this.metadataStubs.add(MetadataStoreGrpc.newBlockingStub(metadataChannel));
+            }
         }
 
         @Override
@@ -231,7 +259,7 @@ public final class MetadataStore {
                 ProtocolStringList blockList = request.getBlocklistList();
                 ArrayList<String> newBlockList = new ArrayList<String>();
 
-                logger.info("Writing file " + filename + "Version: " + version);
+                System.err.println("Attempting to write file" + filename + "Version: " + version);
 
                 responseBuilder.setResultValue(0);
 
@@ -239,7 +267,6 @@ public final class MetadataStore {
                     this.version.put(filename, 0);
                 }
 
-                // TODO: Come back to this
                 responseBuilder.setCurrentVersion(this.version.get(filename));
 
                 if (version != this.version.get(filename) + 1) {
@@ -257,9 +284,32 @@ public final class MetadataStore {
                     if (responseBuilder.getMissingBlocksCount() > 0) {
                         responseBuilder.setResultValue(2); // MISSING_BLOCKS
                     } else {
-                        // TODO TEST: If version is exactly one more than current version, update hashlist
-                        this.hashlist.put(filename, newBlockList);
+
+                        // Prepare log entry
+                        FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
+                        logAppendBuilder.setFilename(filename);
+                        logAppendBuilder.setVersion(version);
+                        logAppendBuilder.addAllBlocklist(newBlockList);
+
+                        // Get 'consensus' from followers, by sending log update
+                        boolean consensusReached = false;
+                        while(!consensusReached) {
+                            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                                SimpleAnswer response = metadatastub.log(logAppendBuilder.build());
+                                if (response.getAnswer())
+                                    consensusReached = true;
+                            }
+                        }
+
+                        // Commit transaction in own state
                         this.version.put(filename, version);
+                        this.hashlist.put(filename, newBlockList);
+                        logger.info("Writing file " + filename + "Version: " + version);
+
+                        // Send commit message to followers
+                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                            SimpleAnswer commitResponse = metadatastub.commit(logAppendBuilder.build());
+                        }
                     }
 
                     if (responseBuilder.getResultValue() == 0) {
@@ -326,6 +376,43 @@ public final class MetadataStore {
             responseObserver.onCompleted();
         }
 
+        @Override
+        public void log(surfstore.SurfStoreBasic.FileInfo request,
+                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+            String fname = request.getFilename();
+            int fversion = request.getVersion();
+            ProtocolStringList fblocklist = request.getBlocklistList();
+            ArrayList<String> newBlockList = new ArrayList<String>();
+            for (String hash : fblocklist)
+                newBlockList.add(hash);
+
+            logger.info("Logged version " + fversion + " changes to file " + fname);
+            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(true);
+            SimpleAnswer response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void commit(surfstore.SurfStoreBasic.FileInfo request,
+                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+            String fname = request.getFilename();
+            int fversion = request.getVersion();
+            ProtocolStringList fblocklist = request.getBlocklistList();
+            ArrayList<String> newBlockList = new ArrayList<String>();
+            for (String hash : fblocklist)
+                newBlockList.add(hash);
+
+            this.version.put(fname, fversion);
+            this.hashlist.put(fname, newBlockList);
+
+            logger.info("Committed version " + fversion + " changes to file " + fname);
+            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(true);
+            SimpleAnswer response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
         /**
          * <pre>
          * Query whether the MetadataStore server is currently the leader.
@@ -375,9 +462,22 @@ public final class MetadataStore {
 
             // TODO: More stuff to actually restore state (catch up to committed log entries)
 
-            // Ping leader to get up to speed
+            // Get log from leader
+            MetadataStoreBlockingStub leader = this.metadataStubs.get(0);
+            List<FileInfo> leaderLog = leader.getUpToSpeed(Empty.newBuilder().build()).getMetalogList();
 
-
+            // Update own log
+            for (FileInfo entry : leaderLog) {
+                String fname = entry.getFilename();
+                int fversion = entry.getVersion();
+                ProtocolStringList fblocklist = entry.getBlocklistList();
+                ArrayList<String> newBlockList = new ArrayList<String>();
+                for (String hash : fblocklist) {
+                    newBlockList.add(hash);
+                }
+                this.version.put(fname, fversion);
+                this.hashlist.put(fname, newBlockList);
+            }
 
             Empty.Builder responseBuilder = Empty.newBuilder();
             Empty response = responseBuilder.build();
@@ -436,6 +536,24 @@ public final class MetadataStore {
             responseBuilder.setVersion(v);
 
             FileInfo response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void getUpToSpeed(surfstore.SurfStoreBasic.Empty request,
+                                 io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.MetaLog> responseObserver) {
+            MetaLog.Builder responseBuilder = MetaLog.newBuilder();
+
+            for (String filename : this.version.keySet()) {
+                FileInfo.Builder fileInfoBuilder = FileInfo.newBuilder();
+                fileInfoBuilder.setFilename(filename);
+                fileInfoBuilder.setVersion(this.version.get(filename));
+                fileInfoBuilder.addAllBlocklist(this.hashlist.get(filename));
+                responseBuilder.addMetalog(fileInfoBuilder.build());
+            }
+
+            MetaLog response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
