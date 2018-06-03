@@ -41,7 +41,7 @@ public final class Client {
     private final int BLOCKSIZE = 4096;
 
     public Client(ConfigReader config) {
-        this.metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getMetadataPort(1))
+        this.metadataChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getMetadataPort(config.getLeaderNum()))
                 .usePlaintext(true).build();
         this.metadataStub = MetadataStoreGrpc.newBlockingStub(metadataChannel);
 
@@ -168,7 +168,6 @@ public final class Client {
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
         FileInfo readResponse = metadataStub.readFile(readRequest);
         int fileVersion = readResponse.getVersion();
-//        System.err.println("Server version: "+ fileVersion);
 
         // If file does not exist, upload file to BlockStore
         if (fileVersion == 0) {
@@ -348,7 +347,6 @@ public final class Client {
     }
 
 
-    // TODO: Implement delete
     private void delete(String filename) {
         System.err.println("Deleting file " + filename);
 

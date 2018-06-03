@@ -55,6 +55,7 @@ public final class MetadataStore {
                 System.err.println("serverId: " + i);
                 if (config.getLeaderNum() == i) {
                     this.isLeader = true;
+                    System.err.println("This server is leader.");
                 } else {
                     this.isLeader = false;
                 }
@@ -216,11 +217,15 @@ public final class MetadataStore {
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
 
-            if (!isLeader || isCrashed) {
+            if (!isLeader) {
+                System.err.println("Server is not Leader");
+                responseBuilder.setResultValue(3); //NOT_LEADER
+            }
+            else if (isCrashed) {
+                System.err.println("Server is crashed");
                 responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
-
                 String filename = request.getFilename();
                 int version = request.getVersion();
                 ProtocolStringList blockList = request.getBlocklistList();
@@ -282,7 +287,12 @@ public final class MetadataStore {
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
             WriteResult.Builder responseBuilder = WriteResult.newBuilder();
 
-            if (!isLeader || isCrashed) {
+            if (!isLeader) {
+                System.err.println("Server is not Leader");
+                responseBuilder.setResultValue(3); //NOT_LEADER
+            }
+            else if (isCrashed) {
+                System.err.println("Server is crashed");
                 responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
