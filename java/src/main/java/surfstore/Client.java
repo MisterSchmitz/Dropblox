@@ -368,13 +368,16 @@ public final class Client {
 
         FileInfo.Builder readReqBuilder = FileInfo.newBuilder();
         FileInfo readRequest = readReqBuilder.setFilename(filename).build();
+
+        // Centralized version
         FileInfo response = metadataStub.getVersion(readRequest);
         System.out.println(response.getVersion());
 
-        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
-            int fversion = metadataStub.getVersion(readRequest).getVersion();
-            System.out.print(fversion + " ");
-        }
+        // Distributed Version
+//        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
+//            int fversion = metadataStub.getVersion(readRequest).getVersion();
+//            System.out.print(fversion + " ");
+//        }
     }
 
     private void crashServer() {
