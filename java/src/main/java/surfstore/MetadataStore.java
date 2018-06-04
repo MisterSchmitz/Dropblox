@@ -180,19 +180,23 @@ public final class MetadataStore {
         @Override
         public void readFile(surfstore.SurfStoreBasic.FileInfo request,
                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
-            FileInfo.Builder responseBuilder = FileInfo.newBuilder();
-            String filename = request.getFilename();
-            logger.info("Reading file " + filename);
-
-            responseBuilder.setFilename(filename);
             lock.lock();
-            responseBuilder.setVersion(version.getOrDefault(filename, 0));
-            if (hashlist.containsKey(filename)) responseBuilder.addAllBlocklist(hashlist.get(filename));
-            lock.unlock();
-            
-            FileInfo response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+            try {
+                FileInfo.Builder responseBuilder = FileInfo.newBuilder();
+                String filename = request.getFilename();
+                logger.info("Reading file " + filename);
+
+                responseBuilder.setFilename(filename);
+                    responseBuilder.setVersion(version.getOrDefault(filename, 0));
+                    if (hashlist.containsKey(filename)) responseBuilder.addAllBlocklist(hashlist.get(filename));
+
+                FileInfo response = responseBuilder.build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+
+            } finally {
+                lock.unlock();
+            }
         }
 
         /**
@@ -216,44 +220,130 @@ public final class MetadataStore {
         @Override
         public void modifyFile(surfstore.SurfStoreBasic.FileInfo request,
                                io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-            WriteResult.Builder responseBuilder = WriteResult.newBuilder();
+            lock.lock();
+            try {
+                WriteResult.Builder responseBuilder = WriteResult.newBuilder();
 
-            if (!isLeader) {
-                System.err.println("Server is not Leader");
-                responseBuilder.setResultValue(3); //NOT_LEADER
-            }
-            else if (isCrashed) {
-                System.err.println("Server is crashed");
-                responseBuilder.setResultValue(3); //NOT_LEADER
-            }
-            else {
-                lock.lock();
-                String filename = request.getFilename();
-                int version = request.getVersion();
-                ProtocolStringList blockList = request.getBlocklistList();
-                ArrayList<String> newBlockList = new ArrayList<>();
+                if (!isLeader) {
+                    System.err.println("Server is not Leader");
+                    responseBuilder.setResultValue(3); //NOT_LEADER
+                } else if (isCrashed) {
+                    System.err.println("Server is crashed");
+                    responseBuilder.setResultValue(3); //NOT_LEADER
+                } else {
+                    String filename = request.getFilename();
+                    int version = request.getVersion();
+                    ProtocolStringList blockList = request.getBlocklistList();
+                    ArrayList<String> newBlockList = new ArrayList<>();
 
-                System.err.println("Attempting to write file" + filename + "Version: " + version);
+                    System.err.println("Attempting to write file" + filename + "Version: " + version);
 
-                if (!this.version.containsKey(filename)) this.version.put(filename, 0);
+                    if (!this.version.containsKey(filename)) this.version.put(filename, 0);
 
-                responseBuilder.setCurrentVersion(this.version.get(filename));
+                    responseBuilder.setCurrentVersion(this.version.get(filename));
 
-                if (version != this.version.get(filename) + 1) responseBuilder.setResultValue(1); // OLD_VERSION
-                else {
-                    // Get missing blocks
-                    for (String hash : blockList) {
-                        newBlockList.add(hash);
-                        Block.Builder builder = Block.newBuilder();
-                        builder.setHash(hash);
-                        SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
-                        if (!blockExists.getAnswer())
-                            responseBuilder.addMissingBlocks(hash);
-                    }
-                    if (responseBuilder.getMissingBlocksCount() > 0)
-                        responseBuilder.setResultValue(2); // MISSING_BLOCKS
+                    if (version != this.version.get(filename) + 1) responseBuilder.setResultValue(1); // OLD_VERSION
                     else {
-                        // TODO: Make this entire operation atomic
+                        // Get missing blocks
+                        for (String hash : blockList) {
+                            newBlockList.add(hash);
+                            Block.Builder builder = Block.newBuilder();
+                            builder.setHash(hash);
+                            SimpleAnswer blockExists = blockStub.hasBlock(builder.build());
+                            if (!blockExists.getAnswer())
+                                responseBuilder.addMissingBlocks(hash);
+                        }
+                        if (responseBuilder.getMissingBlocksCount() > 0)
+                            responseBuilder.setResultValue(2); // MISSING_BLOCKS
+                        else {
+                            // TODO: Make this entire operation atomic
+                            // Prepare log entry
+                            FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
+                            logAppendBuilder.setFilename(filename);
+                            logAppendBuilder.setVersion(version);
+                            logAppendBuilder.addAllBlocklist(newBlockList);
+                            FileInfo logAppendRequest = logAppendBuilder.build();
+
+                            // Get 'consensus' from followers, by sending log update
+                            boolean consensusReached = false;
+                            if (metadataStubs.size() > 0) {
+                                for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                                    SimpleAnswer response = metadatastub.log(logAppendRequest);
+                                    System.err.println("Log received by follower: " + response.getAnswer());
+                                    if (response.getAnswer())
+                                        consensusReached = true;
+                                }
+                            } else {
+                                consensusReached = true;
+                            }
+
+                            if (consensusReached) {
+                                // Commit transaction in own state
+                                this.version.put(filename, version);
+                                this.hashlist.put(filename, newBlockList);
+                                logger.info("Writing file " + filename + "Version: " + version);
+
+                                // Send commit message to followers
+                                for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                                    SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
+                                    System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+                                }
+
+                                responseBuilder.setResultValue(0);
+                            }
+                        }
+
+                        if (responseBuilder.getResultValue() == 0)
+                            responseBuilder.setCurrentVersion(this.version.get(filename));
+                    }
+                }
+
+                WriteResult response = responseBuilder.build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+
+            } finally{
+                lock.unlock();
+            }
+        }
+
+        /**
+         * <pre>
+         * Delete a file.
+         * This has the same semantics as ModifyFile, except that both the
+         * client and server will not specify a blocklist or missing blocks.
+         * As in ModifyFile, this call should return an error if the server
+         * it is called on isn't the leader
+         * </pre>
+         */
+        @Override
+        public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
+                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
+            lock.lock();
+            try {
+                WriteResult.Builder responseBuilder = WriteResult.newBuilder();
+                if (!isLeader) {
+                    System.err.println("Server is not Leader");
+                    responseBuilder.setResultValue(3); //NOT_LEADER
+                } else if (isCrashed) {
+                    System.err.println("Server is crashed");
+                    responseBuilder.setResultValue(3); //NOT_LEADER
+                } else {
+                    String filename = request.getFilename();
+                    int version = request.getVersion();
+                    logger.info("Attempting to Delete file " + filename + "Version: " + version);
+
+                    if (!this.version.containsKey(filename)) {
+                        responseBuilder.setResultValue(0);
+                        responseBuilder.setCurrentVersion(0);
+                    } else if (version != this.version.get(filename) + 1) {
+                        responseBuilder.setResultValue(1); // OLD_VERSION
+                        responseBuilder.setCurrentVersion(this.version.get(filename));
+                    } else {
+                        ArrayList<String> newBlockList = new ArrayList<>();
+                        newBlockList.add("0");
+                        this.hashlist.put(filename, newBlockList);
+
                         // Prepare log entry
                         FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
                         logAppendBuilder.setFilename(filename);
@@ -278,7 +368,7 @@ public final class MetadataStore {
                             // Commit transaction in own state
                             this.version.put(filename, version);
                             this.hashlist.put(filename, newBlockList);
-                            logger.info("Writing file " + filename + "Version: " + version);
+                            logger.info("Deleting file " + filename + "Version: " + version);
 
                             // Send commit message to followers
                             for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
@@ -286,104 +376,20 @@ public final class MetadataStore {
                                 System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
                             }
 
+                            // Prepare client response
                             responseBuilder.setResultValue(0);
+                            responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
                         }
                     }
-
-                    if (responseBuilder.getResultValue() == 0)
-                        responseBuilder.setCurrentVersion(this.version.get(filename));
                 }
+
+                WriteResult response = responseBuilder.build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+
+            } finally {
                 lock.unlock();
             }
-
-            WriteResult response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        }
-
-        /**
-         * <pre>
-         * Delete a file.
-         * This has the same semantics as ModifyFile, except that both the
-         * client and server will not specify a blocklist or missing blocks.
-         * As in ModifyFile, this call should return an error if the server
-         * it is called on isn't the leader
-         * </pre>
-         */
-        @Override
-        public void deleteFile(surfstore.SurfStoreBasic.FileInfo request,
-                               io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.WriteResult> responseObserver) {
-            WriteResult.Builder responseBuilder = WriteResult.newBuilder();
-
-            if (!isLeader) {
-                System.err.println("Server is not Leader");
-                responseBuilder.setResultValue(3); //NOT_LEADER
-            }
-            else if (isCrashed) {
-                System.err.println("Server is crashed");
-                responseBuilder.setResultValue(3); //NOT_LEADER
-            }
-            else {
-                lock.lock();
-                String filename = request.getFilename();
-                int version = request.getVersion();
-                logger.info("Attempting to Delete file " + filename + "Version: " + version);
-
-                if(!this.version.containsKey(filename)) {
-                    responseBuilder.setResultValue(0);
-                    responseBuilder.setCurrentVersion(0);
-                }
-                else if (version != this.version.get(filename) + 1) {
-                    responseBuilder.setResultValue(1); // OLD_VERSION
-                    responseBuilder.setCurrentVersion(this.version.get(filename));
-                } else {
-                    ArrayList<String> newBlockList = new ArrayList<>();
-                    newBlockList.add("0");
-                    this.hashlist.put(filename, newBlockList);
-
-                    // Prepare log entry
-                    FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
-                    logAppendBuilder.setFilename(filename);
-                    logAppendBuilder.setVersion(version);
-                    logAppendBuilder.addAllBlocklist(newBlockList);
-                    FileInfo logAppendRequest = logAppendBuilder.build();
-
-                    // Get 'consensus' from followers, by sending log update
-                    boolean consensusReached = false;
-                    if (metadataStubs.size() > 0) {
-                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer response = metadatastub.log(logAppendRequest);
-                            System.err.println("Log received by follower: " + response.getAnswer());
-                            if (response.getAnswer())
-                                consensusReached = true;
-                        }
-                    } else {
-                        consensusReached = true;
-                    }
-
-                    if (consensusReached) {
-                        // Commit transaction in own state
-                        this.version.put(filename, version);
-                        this.hashlist.put(filename, newBlockList);
-                        logger.info("Deleting file " + filename + "Version: " + version);
-
-                        // Send commit message to followers
-                        for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                            SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                            System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
-                        }
-
-                        // Prepare client response
-                        responseBuilder.setResultValue(0);
-                        responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
-                    }
-                }
-                lock.unlock();
-            }
-
-            WriteResult response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         }
 
         @Override
@@ -391,8 +397,6 @@ public final class MetadataStore {
                         io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
             String fname = request.getFilename();
             int fversion = request.getVersion();
-//            ProtocolStringList fblocklist = request.getBlocklistList();
-//            ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
 
             if (!isCrashed) logger.info("Logged version " + fversion + " changes to file " + fname);
 
@@ -450,14 +454,19 @@ public final class MetadataStore {
         @Override
         public void crash(surfstore.SurfStoreBasic.Empty request,
                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-            isCrashed = true;
+            lock.lock();
+            try {
+                isCrashed = true;
 
-            Empty.Builder responseBuilder = Empty.newBuilder();
-            Empty response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+                Empty.Builder responseBuilder = Empty.newBuilder();
+                Empty response = responseBuilder.build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
 
-            logger.info("Server crashed");
+                logger.info("Server crashed");
+            } finally {
+                lock.unlock();
+            }
         }
 
         /**
@@ -469,28 +478,33 @@ public final class MetadataStore {
         @Override
         public void restore(surfstore.SurfStoreBasic.Empty request,
                             io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.Empty> responseObserver) {
-            isCrashed = false;
+            lock.lock();
+            try {
+                isCrashed = false;
 
-            // Get log from leader
-            MetadataStoreBlockingStub leader = metadataStubs.get(0);
-            List<FileInfo> leaderLog = leader.getUpToSpeed(Empty.newBuilder().build()).getMetalogList();
+                // Get log from leader
+                MetadataStoreBlockingStub leader = metadataStubs.get(0);
+                List<FileInfo> leaderLog = leader.getUpToSpeed(Empty.newBuilder().build()).getMetalogList();
 
-            // Update own log
-            for (FileInfo entry : leaderLog) {
-                String fname = entry.getFilename();
-                int fversion = entry.getVersion();
-                ProtocolStringList fblocklist = entry.getBlocklistList();
-                ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
-                this.version.put(fname, fversion);
-                this.hashlist.put(fname, newBlockList);
+                // Update own log
+                for (FileInfo entry : leaderLog) {
+                    String fname = entry.getFilename();
+                    int fversion = entry.getVersion();
+                    ProtocolStringList fblocklist = entry.getBlocklistList();
+                    ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
+                    this.version.put(fname, fversion);
+                    this.hashlist.put(fname, newBlockList);
+                    logger.info("Server restored");
+                }
+
+                Empty.Builder responseBuilder = Empty.newBuilder();
+                Empty response = responseBuilder.build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+
+            } finally {
+                lock.unlock();
             }
-
-            Empty.Builder responseBuilder = Empty.newBuilder();
-            Empty response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-
-            logger.info("Server restored");
         }
 
         /**
