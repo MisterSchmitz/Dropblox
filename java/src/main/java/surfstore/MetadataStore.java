@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import com.google.protobuf.ProtocolStringList;
@@ -35,6 +36,7 @@ public final class MetadataStore {
     private ConfigReader config;
     private boolean isLeader;
     private boolean isCrashed;
+    ReentrantLock lock = new ReentrantLock();
 
     public MetadataStore(ConfigReader config) {
         this.config = config;
@@ -179,28 +181,18 @@ public final class MetadataStore {
         public void readFile(surfstore.SurfStoreBasic.FileInfo request,
                              io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.FileInfo> responseObserver) {
             FileInfo.Builder responseBuilder = FileInfo.newBuilder();
-
-            logger.info("Reading file " + request.getFilename());
-
-            // Filename
             String filename = request.getFilename();
+            logger.info("Reading file " + filename);
+
             responseBuilder.setFilename(filename);
-
-            // Version
-            int v;
-            if (!version.containsKey(filename))
-                this.version.put(filename, 0);
-
-            v = version.get(filename);
-            responseBuilder.setVersion(v);
-
-            // Blocklist
+            lock.lock();
+            responseBuilder.setVersion(version.getOrDefault(filename, 0));
             if (hashlist.containsKey(filename)) responseBuilder.addAllBlocklist(hashlist.get(filename));
-
+            lock.unlock();
+            
             FileInfo response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-
         }
 
         /**
@@ -235,6 +227,7 @@ public final class MetadataStore {
                 responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
+                lock.lock();
                 String filename = request.getFilename();
                 int version = request.getVersion();
                 ProtocolStringList blockList = request.getBlocklistList();
@@ -300,6 +293,7 @@ public final class MetadataStore {
                     if (responseBuilder.getResultValue() == 0)
                         responseBuilder.setCurrentVersion(this.version.get(filename));
                 }
+                lock.unlock();
             }
 
             WriteResult response = responseBuilder.build();
@@ -330,6 +324,7 @@ public final class MetadataStore {
                 responseBuilder.setResultValue(3); //NOT_LEADER
             }
             else {
+                lock.lock();
                 String filename = request.getFilename();
                 int version = request.getVersion();
                 logger.info("Attempting to Delete file " + filename + "Version: " + version);
@@ -383,6 +378,7 @@ public final class MetadataStore {
                         responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
                     }
                 }
+                lock.unlock();
             }
 
             WriteResult response = responseBuilder.build();
