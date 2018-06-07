@@ -71,10 +71,10 @@ service MetadataStore {
     // OF THE PROJECT, BUT PLEASE DON'T MODIFY THE ABOVE CALLS/ARGUMENTS
 
     // Called by the leader when seeking consensus
-    rpc Log(FileInfo) returns (SimpleAnswer) {}
+    rpc Log(LogEntry) returns (SimpleAnswer) {}
 
     // Called by the leader when transaction is ready to commit
-    rpc Commit(FileInfo) returns (SimpleAnswer) {}
+    rpc Commit(LogEntry) returns (SimpleAnswer) {}
 
     // Called on the leader by a recovering server to get back up to speed
     rpc GetUpToSpeed(Empty) returns (MetaLog) {}
@@ -140,4 +140,9 @@ message NodeList {
 
 message MetaLog {
     repeated FileInfo metalog = 1;
+}
+
+message LogEntry {
+    int32 logIndex = 1;
+    FileInfo logInfo = 2;
 }

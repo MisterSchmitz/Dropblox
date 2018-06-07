@@ -23,6 +23,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.Empty;
 import surfstore.SurfStoreBasic.FileInfo;
+import surfstore.SurfStoreBasic.LogEntry;
 import surfstore.SurfStoreBasic.MetaLog;
 import surfstore.SurfStoreBasic.SimpleAnswer;
 import surfstore.SurfStoreBasic.WriteResult;
@@ -261,13 +262,18 @@ public final class MetadataStore {
                             logAppendBuilder.setFilename(filename);
                             logAppendBuilder.setVersion(version);
                             logAppendBuilder.addAllBlocklist(newBlockList);
-                            FileInfo logAppendRequest = logAppendBuilder.build();
+                            FileInfo logInfo = logAppendBuilder.build();
+                            Integer logIndex = metaLog.size();
+                            LogEntry.Builder logEntryBuilder = LogEntry.newBuilder();
+                            logEntryBuilder.setLogIndex(logIndex);
+                            logEntryBuilder.setLogInfo(logInfo);
+                            LogEntry logEntry = logEntryBuilder.build();
 
                             // Send log update to followers in seeking consensus
-                            boolean consensusReached = seekConsensus(logAppendRequest);
+                            boolean consensusReached = seekConsensus(logEntry);
 
                             if (consensusReached) {
-                                sendCommit(newBlockList, logAppendRequest);
+                                sendCommit(newBlockList, logEntry);
 
                                 // Prepare client response
                                 logger.info("Modified file " + filename + "Version: " + version);
@@ -332,13 +338,18 @@ public final class MetadataStore {
                         logAppendBuilder.setFilename(filename);
                         logAppendBuilder.setVersion(version);
                         logAppendBuilder.addAllBlocklist(newBlockList);
-                        FileInfo logAppendRequest = logAppendBuilder.build();
+                        FileInfo logInfo = logAppendBuilder.build();
+                        Integer logIndex = metaLog.size();
+                        LogEntry.Builder logEntryBuilder = LogEntry.newBuilder();
+                        logEntryBuilder.setLogIndex(logIndex);
+                        logEntryBuilder.setLogInfo(logInfo);
+                        LogEntry logEntry = logEntryBuilder.build();
 
                         // Send log update to followers in seeking consensus
-                        boolean consensusReached = seekConsensus(logAppendRequest);
+                        boolean consensusReached = seekConsensus(logEntry);
 
                         if (consensusReached) {
-                            sendCommit(newBlockList, logAppendRequest);
+                            sendCommit(newBlockList, logEntry);
 
                             // Prepare client response
                             logger.info("Deleted file " + filename + "Version: " + version);
@@ -357,7 +368,7 @@ public final class MetadataStore {
             }
         }
 
-        private boolean seekConsensus(FileInfo transactionRequest) {
+        private boolean seekConsensus(LogEntry transactionRequest) {
             boolean consensusReached = false;
             if (metadataStubs.size() > 0) {
                 // Send log entry to followers
@@ -386,48 +397,49 @@ public final class MetadataStore {
             return consensusReached;
         }
 
-        private void sendCommit(ArrayList<String> newBlockList, FileInfo transactionRequest) {
+        private void sendCommit(ArrayList<String> newBlockList, LogEntry logEntry) {
+            Integer logIndex = logEntry.getLogIndex();
+            FileInfo info = logEntry.getLogInfo();
+
             // Add transaction to own log
-            this.metaLog.add(transactionRequest);
+            this.metaLog.add(info);
             // Commit transaction in own state
-            this.version.put(transactionRequest.getFilename(), transactionRequest.getVersion());
-            this.hashlist.put(transactionRequest.getFilename(), newBlockList);
+            this.version.put(info.getFilename(), info.getVersion());
+            this.hashlist.put(info.getFilename(), newBlockList);
 
             // Send commit message to followers
             for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                SimpleAnswer commitResponse = metadatastub.commit(transactionRequest);
+                SimpleAnswer commitResponse = metadatastub.commit(logEntry);
                 System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
             }
         }
 
+//        private void sendCommit(ArrayList<String> newBlockList, FileInfo transactionRequest) {
+//            // Add transaction to own log
+//            this.metaLog.add(transactionRequest);
+//            // Commit transaction in own state
+//            this.version.put(transactionRequest.getFilename(), transactionRequest.getVersion());
+//            this.hashlist.put(transactionRequest.getFilename(), newBlockList);
+//
+//            // Send commit message to followers
+//            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+//                SimpleAnswer commitResponse = metadatastub.commit(transactionRequest);
+//                System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+//            }
+//        }
+
         @Override
-        public void log(surfstore.SurfStoreBasic.FileInfo request,
+        public void log(surfstore.SurfStoreBasic.LogEntry request,
                         io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-            String fname = request.getFilename();
-            int fversion = request.getVersion();
+            Integer logIndex = request.getLogIndex();
+            FileInfo logInfo = request.getLogInfo();
 
-            if (!isCrashed) logger.info("Logged "+fname+" version " + fversion + " changes");
-
-            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
-            SimpleAnswer response = responseBuilder.build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        }
-
-        @Override
-        public void commit(surfstore.SurfStoreBasic.FileInfo request,
-                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-            String fname = request.getFilename();
-            int fversion = request.getVersion();
-            ProtocolStringList fblocklist = request.getBlocklistList();
-            ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
+            String fname = logInfo.getFilename();
+            int fversion = logInfo.getVersion();
 
             if (!isCrashed) {
-                // Commit changes to log and state
-                this.metaLog.add(request);
-                this.version.put(fname, fversion);
-                this.hashlist.put(fname, newBlockList);
-                logger.info("Committed "+fname+" version " + fversion + " changes");
+                tempLog.put(logIndex, logInfo);
+                logger.info("Logged "+fname+" version " + fversion + " changes");
             }
 
             SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
@@ -435,6 +447,56 @@ public final class MetadataStore {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
+
+        @Override
+        public void commit(surfstore.SurfStoreBasic.LogEntry request,
+                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+
+            if (!isCrashed) {
+                // Retrieve entry from templog
+                Integer logIndex = request.getLogIndex();
+                FileInfo info = tempLog.get(logIndex);
+                String fname = info.getFilename();
+                int fversion = info.getVersion();
+                ProtocolStringList fblocklist = info.getBlocklistList();
+                ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
+
+                // Commit changes to log and state
+                this.metaLog.add(info);
+                this.version.put(fname, fversion);
+                this.hashlist.put(fname, newBlockList);
+                logger.info("Committed "+fname+" version " + fversion + " changes");
+
+                tempLog.remove(logIndex);
+            }
+
+            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
+            SimpleAnswer response = responseBuilder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
+//        @Override
+//        public void commit(surfstore.SurfStoreBasic.FileInfo request,
+//                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
+//            String fname = request.getFilename();
+//            int fversion = request.getVersion();
+//            ProtocolStringList fblocklist = request.getBlocklistList();
+//            ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
+//
+//            if (!isCrashed) {
+//                // Commit changes to log and state
+//                this.metaLog.add(request);
+//                this.version.put(fname, fversion);
+//                this.hashlist.put(fname, newBlockList);
+//                logger.info("Committed "+fname+" version " + fversion + " changes");
+//            }
+//
+//            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
+//            SimpleAnswer response = responseBuilder.build();
+//            responseObserver.onNext(response);
+//            responseObserver.onCompleted();
+//        }
 
         /**
          * <pre>
@@ -588,6 +650,7 @@ public final class MetadataStore {
             responseObserver.onCompleted();
         }
 
+        private HashMap<Integer, FileInfo> tempLog = new HashMap<>();
         private ArrayList<FileInfo> metaLog = new ArrayList<>();
         private Map<String, Integer> version = new HashMap<>();
         private Map<String, ArrayList<String>> hashlist = new HashMap<>();
