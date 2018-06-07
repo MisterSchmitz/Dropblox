@@ -256,7 +256,7 @@ public final class MetadataStore {
                         if (responseBuilder.getMissingBlocksCount() > 0)
                             responseBuilder.setResultValue(2); // MISSING_BLOCKS
                         else {
-                            // TODO: Make this entire operation atomic
+
                             // Prepare log entry
                             FileInfo.Builder logAppendBuilder = FileInfo.newBuilder();
                             logAppendBuilder.setFilename(filename);
@@ -264,32 +264,16 @@ public final class MetadataStore {
                             logAppendBuilder.addAllBlocklist(newBlockList);
                             FileInfo logAppendRequest = logAppendBuilder.build();
 
-                            // Get 'consensus' from followers, by sending log update
-                            boolean consensusReached = false;
-                            if (metadataStubs.size() > 0) {
-                                for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                                    SimpleAnswer response = metadatastub.log(logAppendRequest);
-                                    System.err.println("Log received by follower: " + response.getAnswer());
-                                    if (response.getAnswer())
-                                        consensusReached = true;
-                                }
-                            } else {
-                                consensusReached = true;
-                            }
+                            // Send log update to followers in seeking consensus
+                            boolean consensusReached = seekConsensus(logAppendRequest);
 
                             if (consensusReached) {
-                                // Commit transaction in own state
-                                this.version.put(filename, version);
-                                this.hashlist.put(filename, newBlockList);
-                                logger.info("Writing file " + filename + "Version: " + version);
+                                commitRequest(newBlockList, logAppendRequest);
 
-                                // Send commit message to followers
-                                for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                                    SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                                    System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
-                                }
-
+                                // Prepare client response
+                                logger.info("Modified file " + filename + "Version: " + version);
                                 responseBuilder.setResultValue(0);
+                                responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
                             }
                         }
 
@@ -306,6 +290,7 @@ public final class MetadataStore {
                 lock.unlock();
             }
         }
+
 
         /**
          * <pre>
@@ -351,32 +336,14 @@ public final class MetadataStore {
                         logAppendBuilder.addAllBlocklist(newBlockList);
                         FileInfo logAppendRequest = logAppendBuilder.build();
 
-                        // Get 'consensus' from followers, by sending log update
-                        boolean consensusReached = false;
-                        if (metadataStubs.size() > 0) {
-                            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                                SimpleAnswer response = metadatastub.log(logAppendRequest);
-                                System.err.println("Log received by follower: " + response.getAnswer());
-                                if (response.getAnswer())
-                                    consensusReached = true;
-                            }
-                        } else {
-                            consensusReached = true;
-                        }
+                        // Send log update to followers in seeking consensus
+                        boolean consensusReached = seekConsensus(logAppendRequest);
 
                         if (consensusReached) {
-                            // Commit transaction in own state
-                            this.version.put(filename, version);
-                            this.hashlist.put(filename, newBlockList);
-                            logger.info("Deleting file " + filename + "Version: " + version);
-
-                            // Send commit message to followers
-                            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-                                SimpleAnswer commitResponse = metadatastub.commit(logAppendRequest);
-                                System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
-                            }
+                            commitRequest(newBlockList, logAppendRequest);
 
                             // Prepare client response
+                            logger.info("Deleted file " + filename + "Version: " + version);
                             responseBuilder.setResultValue(0);
                             responseBuilder.setCurrentVersion(this.version.get(filename) + 1);
                         }
@@ -392,13 +359,54 @@ public final class MetadataStore {
             }
         }
 
+        private boolean seekConsensus(FileInfo transactionRequest) {
+            boolean consensusReached = false;
+            if (metadataStubs.size() > 0) {
+                // Send log entry to followers
+                ArrayList<SimpleAnswer> followerResponses = new ArrayList<>();
+                for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                    SimpleAnswer response = metadatastub.log(transactionRequest);
+                    followerResponses.add(response);
+                    System.err.println("Log received by follower: " + response.getAnswer());
+                }
+                // Count number of responses
+                int trueResponses = 1; // Self
+                for (SimpleAnswer answer : followerResponses) {
+                    if(answer.getAnswer()) trueResponses += 1;
+                }
+                // If majority responded, consensus reached.
+                if (trueResponses > metadataStubs.size()/2) {
+                    System.err.println("Consensus reached");
+                    consensusReached = true;
+                }
+
+            } else {
+                consensusReached = true; // This is the only Metadatastore server
+            }
+            return consensusReached;
+        }
+
+        private void commitRequest(ArrayList<String> newBlockList, FileInfo transactionRequest) {
+            // Add transaction to own log
+            this.metaLog.add(transactionRequest);
+            // Commit transaction in own state
+            this.version.put(transactionRequest.getFilename(), transactionRequest.getVersion());
+            this.hashlist.put(transactionRequest.getFilename(), newBlockList);
+
+            // Send commit message to followers
+            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
+                SimpleAnswer commitResponse = metadatastub.commit(transactionRequest);
+                System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
+            }
+        }
+
         @Override
         public void log(surfstore.SurfStoreBasic.FileInfo request,
                         io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
             String fname = request.getFilename();
             int fversion = request.getVersion();
 
-            if (!isCrashed) logger.info("Logged version " + fversion + " changes to file " + fname);
+            if (!isCrashed) logger.info("Logged "+fname+" version " + fversion + " changes");
 
             SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
             SimpleAnswer response = responseBuilder.build();
@@ -415,9 +423,11 @@ public final class MetadataStore {
             ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
 
             if (!isCrashed) {
+                // Commit changes to log and state
+                this.metaLog.add(request);
                 this.version.put(fname, fversion);
                 this.hashlist.put(fname, newBlockList);
-                logger.info("Committed version " + fversion + " changes to file " + fname);
+                logger.info("Committed "+fname+" version " + fversion + " changes");
             }
 
             SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
@@ -578,6 +588,7 @@ public final class MetadataStore {
             responseObserver.onCompleted();
         }
 
+        private ArrayList<FileInfo> metaLog = new ArrayList<>();
         private Map<String, Integer> version = new HashMap<>();
         private Map<String, ArrayList<String>> hashlist = new HashMap<>();
     }

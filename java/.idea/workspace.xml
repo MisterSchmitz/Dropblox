@@ -12,10 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="-5475">
+              <caret line="28" column="62" selection-start-line="28" selection-start-column="62" selection-end-line="28" selection-end-column="62" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -23,11 +24,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MetadataStore.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="559">
-              <caret line="560" column="9" selection-start-line="560" selection-start-column="9" selection-end-line="560" selection-end-column="9" />
+            <state relative-caret-position="289">
+              <caret line="267" column="80" selection-start-line="267" selection-start-column="80" selection-end-line="267" selection-end-column="80" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -38,8 +39,8 @@
       <file leaf-file-name="SurfStoreBasic.proto" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="7" column="35" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="35" />
+            <state relative-caret-position="562">
+              <caret line="141" column="21" selection-start-line="141" selection-start-column="13" selection-end-line="141" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -104,23 +105,24 @@
         <option value="$PROJECT_DIR$/src/main/java/surfstore/HashUtils.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto" />
-        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java" />
         <option value="$PROJECT_DIR$/src/main/java/surfstore/Client.java" />
+        <option value="$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1964" />
-    <option name="y" value="-11" />
-    <option name="width" value="1877" />
-    <option name="height" value="1092" />
+    <option name="x" value="69" />
+    <option name="y" value="20" />
+    <option name="width" value="1805" />
+    <option name="height" value="57" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -166,7 +168,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -188,7 +189,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.DIST Client upload simple">
+  <component name="RunManager" selected="Application.Client download big">
     <configuration name="BlockStore" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="surfstore.BlockStore" />
       <module name="surfstore" />
@@ -470,27 +471,29 @@
       <workItem from="1527848800098" duration="7389000" />
       <workItem from="1527904603070" duration="35573000" />
       <workItem from="1527982564262" duration="16035000" />
-      <workItem from="1528080952526" duration="2102000" />
+      <workItem from="1528080952526" duration="2801000" />
+      <workItem from="1528403536243" duration="2739000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="106024000" />
+    <option name="totallyTimeSpent" value="109462000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1964" y="-11" width="1877" height="1092" extended-state="6" />
+    <frame x="45" y="-4" width="1875" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="7" />
-      <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.4992" weight="0.32924336" />
+      <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.49866667" weight="0.32924336" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.32533333" side_tool="true" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3264" side_tool="true" visible="true" weight="0.28732106" />
       <window_info anchor="right" id="Maven Projects" order="4" />
       <window_info anchor="bottom" id="Version Control" order="10" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.67466664" visible="true" weight="0.28732106" />
+      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.6736" visible="true" weight="0.28732106" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Designer" order="1" />
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49919742" visible="true" weight="0.17226666" />
+      <window_info anchor="bottom" id="Find" order="2" sideWeight="0.4992" weight="0.32924336" />
       <window_info active="true" anchor="right" id="Structure" order="5" sideWeight="0.5008026" side_tool="true" visible="true" weight="0.27466667" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -500,7 +503,6 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="2" sideWeight="0.49973333" weight="0.32924336" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -524,26 +526,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="1084" column="28" lean-forward="true" selection-start-line="1084" selection-start-column="28" selection-end-line="1084" selection-end-column="28" />
-          <folding>
-            <element signature="e#35974#35975#0" expanded="true" />
-            <element signature="e#36020#36021#0" expanded="true" />
-            <element signature="e#50443#50444#0" expanded="true" />
-            <element signature="e#50494#50495#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/BlockStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="103">
-          <caret line="102" column="5" lean-forward="true" selection-start-line="102" selection-start-column="5" selection-end-line="102" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java" />
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/BlockStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-870">
@@ -582,13 +566,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="864">
-          <caret line="342" column="5" lean-forward="true" selection-start-line="342" selection-start-column="5" selection-end-line="342" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -661,19 +639,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="16125">
-          <caret line="1075" selection-start-line="1075" selection-end-line="1075" />
-          <folding>
-            <element signature="e#35974#35975#0" expanded="true" />
-            <element signature="e#36020#36021#0" expanded="true" />
-            <element signature="e#50443#50444#0" expanded="true" />
-            <element signature="e#50494#50495#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1470">
@@ -711,19 +677,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34005">
-          <caret line="2267" column="21" selection-start-line="2267" selection-start-column="8" selection-end-line="2267" selection-end-column="21" />
-          <folding>
-            <element signature="e#35974#35975#0" expanded="true" />
-            <element signature="e#36020#36021#0" expanded="true" />
-            <element signature="e#50443#50444#0" expanded="true" />
-            <element signature="e#50494#50495#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1875">
@@ -734,13 +688,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7950">
-          <caret line="549" selection-start-line="549" selection-end-line="549" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="690">
@@ -787,26 +735,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15840">
-          <caret line="1056" column="30" selection-start-line="1056" selection-start-column="30" selection-end-line="1056" selection-end-column="30" />
-          <folding>
-            <element signature="e#35974#35975#0" expanded="true" />
-            <element signature="e#36020#36021#0" expanded="true" />
-            <element signature="e#50443#50444#0" expanded="true" />
-            <element signature="e#50494#50495#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4065">
-          <caret line="286" column="5" lean-forward="true" selection-start-line="176" selection-start-column="4" selection-end-line="286" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java" />
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1845">
@@ -868,26 +798,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="1084" column="28" lean-forward="true" selection-start-line="1084" selection-start-column="28" selection-end-line="1084" selection-end-column="28" />
-          <folding>
-            <element signature="e#35974#35975#0" expanded="true" />
-            <element signature="e#36020#36021#0" expanded="true" />
-            <element signature="e#50443#50444#0" expanded="true" />
-            <element signature="e#50494#50495#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/BlockStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="103">
-          <caret line="102" column="5" lean-forward="true" selection-start-line="102" selection-start-column="5" selection-end-line="102" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/java/surfstore/SurfStoreBasic.java" />
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/BlockStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-870">
@@ -916,30 +828,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="864">
-          <caret line="342" column="5" lean-forward="true" selection-start-line="342" selection-start-column="5" selection-end-line="342" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="7" column="35" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="559">
-          <caret line="560" column="9" selection-start-line="560" selection-start-column="9" selection-end-line="560" selection-end-column="9" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/target/generated-sources/protobuf/grpc-java/surfstore/MetadataStoreGrpc.java" />
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/BlockStore.java">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -949,9 +838,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/proto/SurfStoreBasic.proto">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="562">
+          <caret line="141" column="21" selection-start-line="141" selection-start-column="13" selection-end-line="141" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/Client.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="-5475">
+          <caret line="28" column="62" selection-start-line="28" selection-start-column="62" selection-end-line="28" selection-end-column="62" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/surfstore/MetadataStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="267" column="80" selection-start-line="267" selection-start-column="80" selection-end-line="267" selection-end-column="80" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
