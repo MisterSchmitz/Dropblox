@@ -81,7 +81,7 @@ public final class Client {
         return builder.build(); // turns the Builder into a Block
     }
 
-    private void go(String operation, String filename, String pathToStoreDownload) {
+    private void go(String operation, String filename, String pathToStoreDownload, Integer serverId) {
         metadataStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Metadata server");
 
@@ -102,10 +102,10 @@ public final class Client {
             getVersion(filename);
         }
         if(operation.equals("crash")) {
-            crashServer();
+            crashServer(serverId);
         }
         if(operation.equals("restore")) {
-            restoreServer();
+            restoreServer(serverId);
         }
 
     }
@@ -373,20 +373,20 @@ public final class Client {
         System.out.println(response.getVersion());
 
         // Distributed Version
-//        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
-//            int fversion = metadataStub.getVersion(readRequest).getVersion();
-//            System.out.print(fversion + " ");
-//        }
+        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
+            int fversion = metadataStub.getVersion(readRequest).getVersion();
+            System.out.print(fversion + " ");
+        }
     }
 
-    private void crashServer() {
-        int serverId = 3;
+    private void crashServer(int id) {
+        int serverId = id;
         System.err.println("Crashing server " + serverId);
         metadataStubs.get(serverId-1).crash(Empty.newBuilder().build());
     }
 
-    private void restoreServer() {
-        int serverId = 3;
+    private void restoreServer(int id) {
+        int serverId = id;
         System.err.println("Restoring server " + serverId);
         metadataStubs.get(serverId-1).restore(Empty.newBuilder().build());
     }
@@ -403,6 +403,8 @@ public final class Client {
                 .help("File name on which to operate");
         parser.addArgument("path_to_store").type(String.class).nargs("?").setDefault("./")
                 .help("Optional path to store downloads");
+        parser.addArgument("serverId").type(Integer.class).nargs("?").setDefault(-1)
+                .help("Server to crash or restore");
 
         Namespace res = null;
         try {
@@ -428,7 +430,8 @@ public final class Client {
             client.go(
                     c_args.getString("operation"),
                     c_args.getString("filename"),
-                    c_args.getString("path_to_store")
+                    c_args.getString("path_to_store"),
+                    c_args.getInt("serverId")
             );
         } finally {
             client.shutdown();

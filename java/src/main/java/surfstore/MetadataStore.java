@@ -223,7 +223,6 @@ public final class MetadataStore {
             lock.lock();
             try {
                 WriteResult.Builder responseBuilder = WriteResult.newBuilder();
-
                 if (!isLeader) {
                     System.err.println("Server is not Leader");
                     responseBuilder.setResultValue(3); //NOT_LEADER
@@ -233,10 +232,7 @@ public final class MetadataStore {
                 } else {
                     String filename = request.getFilename();
                     int version = request.getVersion();
-                    ProtocolStringList blockList = request.getBlocklistList();
-                    ArrayList<String> newBlockList = new ArrayList<>();
-
-                    System.err.println("Attempting to write file" + filename + "Version: " + version);
+                    logger.info("Attempting to Write file" + filename + "Version: " + version);
 
                     if (!this.version.containsKey(filename)) this.version.put(filename, 0);
 
@@ -244,6 +240,9 @@ public final class MetadataStore {
 
                     if (version != this.version.get(filename) + 1) responseBuilder.setResultValue(1); // OLD_VERSION
                     else {
+                        ProtocolStringList blockList = request.getBlocklistList();
+                        ArrayList<String> newBlockList = new ArrayList<>();
+
                         // Get missing blocks
                         for (String hash : blockList) {
                             newBlockList.add(hash);
@@ -268,7 +267,7 @@ public final class MetadataStore {
                             boolean consensusReached = seekConsensus(logAppendRequest);
 
                             if (consensusReached) {
-                                commitRequest(newBlockList, logAppendRequest);
+                                sendCommit(newBlockList, logAppendRequest);
 
                                 // Prepare client response
                                 logger.info("Modified file " + filename + "Version: " + version);
@@ -319,7 +318,6 @@ public final class MetadataStore {
                     logger.info("Attempting to Delete file " + filename + "Version: " + version);
 
                     if (!this.version.containsKey(filename)) {
-                        responseBuilder.setResultValue(0);
                         responseBuilder.setCurrentVersion(0);
                     } else if (version != this.version.get(filename) + 1) {
                         responseBuilder.setResultValue(1); // OLD_VERSION
@@ -340,7 +338,7 @@ public final class MetadataStore {
                         boolean consensusReached = seekConsensus(logAppendRequest);
 
                         if (consensusReached) {
-                            commitRequest(newBlockList, logAppendRequest);
+                            sendCommit(newBlockList, logAppendRequest);
 
                             // Prepare client response
                             logger.info("Deleted file " + filename + "Version: " + version);
@@ -378,6 +376,8 @@ public final class MetadataStore {
                 if (trueResponses > metadataStubs.size()/2) {
                     System.err.println("Consensus reached");
                     consensusReached = true;
+                } else {
+                    System.err.println("Consensus NOT reached. Unable to commit.");
                 }
 
             } else {
@@ -386,7 +386,7 @@ public final class MetadataStore {
             return consensusReached;
         }
 
-        private void commitRequest(ArrayList<String> newBlockList, FileInfo transactionRequest) {
+        private void sendCommit(ArrayList<String> newBlockList, FileInfo transactionRequest) {
             // Add transaction to own log
             this.metaLog.add(transactionRequest);
             // Commit transaction in own state
