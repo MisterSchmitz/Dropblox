@@ -373,10 +373,10 @@ public final class Client {
         System.out.println(response.getVersion());
 
         // Distributed Version
-        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
-            int fversion = metadataStub.getVersion(readRequest).getVersion();
-            System.out.print(fversion + " ");
-        }
+//        for (MetadataStoreGrpc.MetadataStoreBlockingStub metadataStub : metadataStubs) {
+//            int fversion = metadataStub.getVersion(readRequest).getVersion();
+//            System.out.print(fversion + " ");
+//        }
     }
 
     private void crashServer(int id) {

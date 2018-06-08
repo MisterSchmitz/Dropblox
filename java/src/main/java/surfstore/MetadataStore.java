@@ -414,20 +414,6 @@ public final class MetadataStore {
             }
         }
 
-//        private void sendCommit(ArrayList<String> newBlockList, FileInfo transactionRequest) {
-//            // Add transaction to own log
-//            this.metaLog.add(transactionRequest);
-//            // Commit transaction in own state
-//            this.version.put(transactionRequest.getFilename(), transactionRequest.getVersion());
-//            this.hashlist.put(transactionRequest.getFilename(), newBlockList);
-//
-//            // Send commit message to followers
-//            for (MetadataStoreBlockingStub metadatastub : metadataStubs) {
-//                SimpleAnswer commitResponse = metadatastub.commit(transactionRequest);
-//                System.err.println("Commit message received by follower: " + commitResponse.getAnswer());
-//            }
-//        }
-
         @Override
         public void log(surfstore.SurfStoreBasic.LogEntry request,
                         io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
@@ -475,28 +461,6 @@ public final class MetadataStore {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
-
-//        @Override
-//        public void commit(surfstore.SurfStoreBasic.FileInfo request,
-//                           io.grpc.stub.StreamObserver<surfstore.SurfStoreBasic.SimpleAnswer> responseObserver) {
-//            String fname = request.getFilename();
-//            int fversion = request.getVersion();
-//            ProtocolStringList fblocklist = request.getBlocklistList();
-//            ArrayList<String> newBlockList = new ArrayList<>(fblocklist);
-//
-//            if (!isCrashed) {
-//                // Commit changes to log and state
-//                this.metaLog.add(request);
-//                this.version.put(fname, fversion);
-//                this.hashlist.put(fname, newBlockList);
-//                logger.info("Committed "+fname+" version " + fversion + " changes");
-//            }
-//
-//            SimpleAnswer.Builder responseBuilder = SimpleAnswer.newBuilder().setAnswer(!isCrashed);
-//            SimpleAnswer response = responseBuilder.build();
-//            responseObserver.onNext(response);
-//            responseObserver.onCompleted();
-//        }
 
         /**
          * <pre>
